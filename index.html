@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交易日志 · 市场温度</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#151b23; --panel2:#1b232d; --raise:#202b37;
+    --border:#26313d; --border2:#313d4b;
+    --text:#e7edf3; --muted:#93a0af; --faint:#5d6877;
+    --brass:#c8a25a; --brass-dim:#8a7338;
+    /* temperature axis */
+    --hot:#ef6351; --warm:#f0a93b; --neutral:#9aa7b5; --cool:#3fb6c4; --frozen:#4f8fe0;
+    --good:#5bbf8a; --bad:#e0746a;
+    --radius:14px;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #182230 0%, transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+    padding:0 0 80px;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:30;
+    backdrop-filter:blur(10px);
+    background:linear-gradient(to bottom, rgba(13,17,23,.92), rgba(13,17,23,.7));
+    border-bottom:1px solid var(--border);
+  }
+  .head-in{max-width:1120px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+  .brand h1{font-size:18px;font-weight:650;letter-spacing:.5px;margin:0}
+  .brand .tag{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--brass);border:1px solid var(--brass-dim);padding:2px 7px;border-radius:6px}
+  .head-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .head-tools label{font-size:12px;color:var(--muted)}
+  .totbox{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:5px 9px}
+  .totbox input{width:64px;background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:13px;text-align:right}
+  .totbox input:focus{outline:none}
+  button.ghost{
+    background:var(--panel);border:1px solid var(--border);color:var(--muted);
+    font-size:12.5px;padding:6px 11px;border-radius:9px;cursor:pointer;font-family:var(--sans);
+    transition:.15s;
+  }
+  button.ghost:hover{border-color:var(--brass-dim);color:var(--text)}
+
+  /* ---------- layout ---------- */
+  .grid-top{display:grid;grid-template-columns:1fr .82fr;gap:16px;margin-top:20px}
+  @media(max-width:840px){.grid-top{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+  .card .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--faint);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+
+  /* ---------- entry form ---------- */
+  .form-grid{display:grid;grid-template-columns:repeat(3,1fr);column-gap:18px;row-gap:16px}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .field input,.field select,.field textarea{min-width:0}
+  .field.span2{grid-column:span 2}
+  .field.span3{grid-column:span 3}
+  /* the three breadth inputs sit on their own row with extra breathing room */
+  .field.breadth{margin-top:10px}
+  .field.breadth-start{grid-column:1}
+  .field > label{font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;align-items:baseline}
+  .field .hint{font-family:var(--mono);font-size:11px;color:var(--brass)}
+  input,select,textarea{
+    background:var(--panel2);border:1px solid var(--border2);color:var(--text);
+    border-radius:9px;padding:9px 11px;font-size:14px;font-family:var(--sans);width:100%;
+    transition:border-color .15s, background .15s;
+  }
+  input[type=number]{font-family:var(--mono)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brass);background:var(--raise)}
+  textarea{resize:vertical;min-height:42px;line-height:1.45}
+  input::placeholder,textarea::placeholder{color:var(--faint)}
+  @media(max-width:520px){.form-grid{grid-template-columns:1fr 1fr}.field.span2,.field.span3{grid-column:span 2}}
+
+  /* emotion slider */
+  .emo{display:flex;align-items:center;gap:12px}
+  .emo input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;padding:0;
+    background:linear-gradient(90deg,var(--bad),var(--neutral) 50%,var(--good));}
+  .emo input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--text);border:3px solid var(--bg);box-shadow:0 0 0 1px var(--border2);cursor:pointer}
+  .emo input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--text);border:3px solid var(--bg);cursor:pointer}
+  .emo .emoval{font-family:var(--mono);font-size:22px;min-width:46px;text-align:right;font-weight:600}
+
+  .form-foot{display:flex;align-items:center;gap:12px;margin-top:16px}
+  button.primary{
+    background:linear-gradient(180deg,#d9b56a,#c8a25a);color:#1a1407;border:none;
+    font-weight:650;font-size:14px;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:var(--sans);
+    box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 6px 16px rgba(200,162,90,.18);
+    transition:.15s;
+  }
+  button.primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  button.primary:active{transform:translateY(0)}
+  .form-foot .editing{font-size:12.5px;color:var(--warm);display:none}
+  .form-foot .editing.on{display:inline}
+  button.linkbtn{background:none;border:none;color:var(--faint);font-size:12.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  button.linkbtn:hover{color:var(--muted)}
+
+  /* ---------- temperature card ---------- */
+  .temp-card{display:flex;flex-direction:column}
+  .temp-now{display:flex;align-items:flex-end;gap:14px;margin-bottom:4px}
+  .temp-now .big{font-family:var(--mono);font-size:50px;line-height:.9;font-weight:600}
+  .temp-now .lbl{font-size:22px;font-weight:650;padding-bottom:5px}
+  .temp-sub{font-size:12.5px;color:var(--muted);min-height:18px}
+  .temp-bar{position:relative;height:12px;border-radius:8px;margin:18px 0 6px;
+    background:linear-gradient(90deg,var(--hot),var(--warm) 30%,var(--neutral) 50%,var(--cool) 72%,var(--frozen));}
+  .temp-bar .pin{position:absolute;top:-5px;width:4px;height:22px;border-radius:3px;background:var(--text);box-shadow:0 0 0 2px var(--bg);transition:left .3s}
+  .temp-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint)}
+  .temp-rows{margin-top:18px;display:flex;flex-direction:column;gap:11px}
+  .trow{display:grid;grid-template-columns:64px 1fr 58px;align-items:center;gap:10px}
+  .trow .nm{font-size:12px;color:var(--muted)}
+  .trow .track{height:7px;border-radius:5px;background:var(--panel2);overflow:hidden}
+  .trow .fill{height:100%;border-radius:5px}
+  .trow .pv{font-family:var(--mono);font-size:13px;text-align:right}
+  .temp-meta{display:flex;gap:18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+  .temp-meta .m{flex:1}
+  .temp-meta .mk{font-size:11px;color:var(--faint);font-family:var(--mono);letter-spacing:1px}
+  .temp-meta .mv{font-family:var(--mono);font-size:17px;margin-top:3px}
+
+  /* ---------- charts ---------- */
+  .charts{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px}
+  @media(max-width:840px){.charts{grid-template-columns:1fr}}
+  .chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .legend{display:flex;gap:14px;font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .rangebtns{display:flex;gap:4px}
+  .rangebtns button{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--faint);cursor:pointer}
+  .rangebtns button.on{color:var(--brass);border-color:var(--brass-dim);background:rgba(200,162,90,.08)}
+
+  /* ---------- table ---------- */
+  .tbl-card{margin-top:16px;padding:0;overflow:hidden}
+  .tbl-top{padding:16px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+  .tbl-top .eyebrow{margin:0}
+  .tbl-top .count{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .tbl-top input.search{max-width:220px;margin-left:auto;padding:7px 10px;font-size:13px}
+  .tbl-scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:760px}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--faint);
+    text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);white-space:nowrap}
+  td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  tbody tr{cursor:pointer;transition:background .12s}
+  tbody td{transition:background .12s}
+  /* week divider header: summarizes each trading week */
+  tbody tr.week-head{cursor:default}
+  tbody tr.week-head td{background:var(--panel2);border-top:2px solid var(--border2);border-bottom:1px solid var(--border);padding:7px 14px}
+  tbody tr.week-head:hover td{background:var(--panel2)}
+  .whead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px}
+  .wh-range{color:var(--text);font-weight:600;letter-spacing:.4px}
+  .wh-range .wh-days{color:var(--faint);font-weight:400;margin-left:7px}
+  .wh-deltas{display:flex;gap:13px;color:var(--faint)}
+  .wh-deltas b{font-weight:600}
+  .wh-emo{color:var(--faint)}
+  .wh-temp{margin-left:auto;font-weight:600;display:flex;align-items:center;gap:6px}
+  .wh-temp .wd{width:8px;height:8px;border-radius:50%}
+  /* day rows: faint left rail binds the week block */
+  tbody td:first-child{border-left:3px solid transparent}
+  tbody tr.dayrow td:first-child{border-left-color:var(--border)}
+  tbody tr.node td:first-child{border-left-color:var(--bad)}
+  .nodeDot{display:none;width:6px;height:6px;border-radius:50%;background:var(--bad);margin-right:6px;vertical-align:middle;box-shadow:0 0 6px rgba(224,116,106,.7)}
+  tbody tr.node .nodeDot{display:inline-block}
+  tbody tr.dayrow:hover td{background:var(--panel2)}
+  tbody tr.node:hover td{background:rgba(224,116,106,.09)}
+  td.num{font-family:var(--mono);text-align:right;white-space:nowrap}
+  td.num .pct{font-family:var(--mono);font-weight:600}
+  td.num .b-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle;opacity:.9}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .pct{font-family:var(--mono)}
+  .vol{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  .vol .up{color:var(--warm)} .vol .down{color:var(--cool)}
+  .actiontag{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:6px;white-space:nowrap;border:1px solid transparent}
+  .a-open{color:#f0b87f;background:rgba(240,169,59,.1);border-color:rgba(240,169,59,.25)}
+  .a-cut{color:#7fd0db;background:rgba(63,182,196,.1);border-color:rgba(63,182,196,.25)}
+  .a-none{color:var(--faint);background:var(--panel2)}
+  .a-mix{color:#cbb6e0;background:rgba(160,130,200,.12);border-color:rgba(160,130,200,.25)}
+  .cell-text{color:var(--text);max-width:280px}
+  .cell-text .rs{color:var(--faint);font-size:12px;margin-top:2px}
+  .emoCell{font-family:var(--mono);font-weight:600}
+  .rowdel{color:var(--faint);font-size:15px;padding:0 4px;border:none;background:none;cursor:pointer;line-height:1}
+  .rowdel:hover{color:var(--bad)}
+  .empty{padding:50px;text-align:center;color:var(--faint);font-size:14px}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;
+    background:var(--raise);border:1px solid var(--border2);color:var(--text);padding:11px 20px;border-radius:11px;
+    font-size:13.5px;box-shadow:0 12px 30px rgba(0,0,0,.4);transition:.25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .foot-note{text-align:center;color:var(--faint);font-size:11.5px;margin-top:26px;line-height:1.7}
+</style>
+</head>
+<body>
+<header>
+  <div class="head-in">
+    <div class="brand">
+      <h1>交易日志</h1>
+      <span class="tag">市场温度</span>
+    </div>
+    <div class="head-tools">
+      <div class="totbox" title="全市场股票总数，作为均线占比的分母">
+        <label>总数</label>
+        <input id="totalStocks" type="number" inputmode="numeric">
+      </div>
+      <button class="ghost" id="btnExportCsv">导出 CSV</button>
+      <button class="ghost" id="btnExportJson">备份 JSON</button>
+      <button class="ghost" id="btnImport">导入</button>
+      <input id="fileImport" type="file" accept=".json" style="display:none">
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid-top">
+
+    <!-- ENTRY FORM -->
+    <div class="card">
+      <div class="eyebrow"><span>今日录入 · DAILY ENTRY</span><span id="dupHint" style="color:var(--warm)"></span></div>
+      <div class="form-grid">
+        <div class="field">
+          <label>日期</label>
+          <input id="f_date" type="date">
+        </div>
+        <div class="field">
+          <label>成交额（亿）<span class="hint" id="hVol"></span></label>
+          <input id="f_turnover" type="number" inputmode="numeric" placeholder="两市成交额" list="volList">
+          <datalist id="volList"><option value="放量"><option value="缩量"></datalist>
+        </div>
+        <div class="field">
+          <label>当日行为</label>
+          <input id="f_action" list="actionList" placeholder="选择 / 输入">
+          <datalist id="actionList">
+            <option value="无操作"><option value="不操作"><option value="开新仓"><option value="开仓">
+            <option value="加仓"><option value="补仓"><option value="减仓"><option value="止损"><option value="减仓开仓">
+          </datalist>
+        </div>
+        <div class="field breadth breadth-start">
+          <label>现价 60日均下 <span class="hint" id="h60"></span></label>
+          <input id="f_b60" type="number" inputmode="numeric" placeholder="个股数">
+        </div>
+        <div class="field breadth">
+          <label>现价 120日均下 <span class="hint" id="h120"></span></label>
+          <input id="f_b120" type="number" inputmode="numeric" placeholder="个股数">
+        </div>
+        <div class="field breadth">
+          <label>现价 250日均下 <span class="hint" id="h250"></span></label>
+          <input id="f_b250" type="number" inputmode="numeric" placeholder="个股数">
+        </div>
+        <div class="field span3">
+          <label>市场总结 / 判断</label>
+          <textarea id="f_summary" placeholder="对当前多空结构、量价、风险的判断…"></textarea>
+        </div>
+        <div class="field span2">
+          <label>操作原因</label>
+          <input id="f_reason" placeholder="为什么这样操作？">
+        </div>
+        <div class="field">
+          <label>情绪 / 纪律分 <span style="color:var(--faint);font-weight:400">0–100</span></label>
+          <div class="emo">
+            <input id="f_emotion" type="range" min="0" max="100" value="60">
+            <span class="emoval" id="emoVal">60</span>
+          </div>
+        </div>
+        <div class="field span3">
+          <label>反思 / 备注</label>
+          <input id="f_reflect" placeholder="个股、复盘、提醒自己的话…">
+        </div>
+      </div>
+      <div class="form-foot">
+        <button class="primary" id="btnSave">保存今日</button>
+        <span class="editing" id="editFlag">编辑中</span>
+        <button class="linkbtn" id="btnReset" style="margin-left:auto">清空表单</button>
+      </div>
+    </div>
+
+    <!-- TEMPERATURE -->
+    <div class="card temp-card">
+      <div class="eyebrow"><span>市场温度 · BREADTH</span><span id="tempDate" style="color:var(--faint)"></span></div>
+      <div class="temp-now">
+        <span class="big" id="tempPct">–</span>
+        <span class="lbl" id="tempLbl">—</span>
+      </div>
+      <div class="temp-sub" id="tempSub">输入 60日均下 个股数即可读取温度</div>
+      <div class="temp-bar"><div class="pin" id="tempPin" style="left:50%"></div></div>
+      <div class="temp-scale"><span>过热 0%</span><span>中性 50%</span><span>冰点 100%</span></div>
+
+      <div class="temp-rows" id="tempRows"></div>
+
+      <div class="temp-meta">
+        <div class="m"><div class="mk">TURNOVER</div><div class="mv" id="mVol">—</div></div>
+        <div class="m"><div class="mk">EMOTION</div><div class="mv" id="mEmo">—</div></div>
+        <div class="m"><div class="mk">ACTION</div><div class="mv" id="mAct" style="font-size:14px">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts">
+    <div class="card">
+      <div class="chart-head">
+        <div class="eyebrow" style="margin:0">破位占比趋势 · % BELOW MA</div>
+        <div class="rangebtns" id="rangeBtns">
+          <button data-n="30">30</button><button data-n="60" class="on">60</button><button data-n="0">全部</button>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i style="background:#d9b56a"></i>60日</span>
+        <span><i style="background:#6aa9c9"></i>120日</span>
+        <span><i style="background:#a082c8"></i>250日</span>
+      </div>
+      <svg id="breadthChart" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="card">
+      <div class="chart-head">
+        <div class="eyebrow" style="margin:0">情绪 / 纪律分 · EMOTION</div>
+      </div>
+      <div class="legend"><span><i style="background:var(--brass)"></i>0–100，50 为中位</span></div>
+      <svg id="emoChart" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card tbl-card">
+    <div class="tbl-top">
+      <div class="eyebrow">历史记录 · LOG</div>
+      <span class="count" id="rowCount"></span>
+      <input class="search" id="search" placeholder="搜索 总结/原因/反思…">
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr>
+          <th>日期</th><th>60↓</th><th>120↓</th><th>250↓</th><th>量能</th>
+          <th>行为</th><th>总结 / 反思</th><th>原因</th><th>情绪</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="emptyState" style="display:none">还没有记录，先在上方录入今天的数据。</div>
+  </div>
+
+  <div class="foot-note">
+    <div id="statusLine" style="font-family:var(--mono);font-size:12px;margin-bottom:10px"></div>
+    三列破位占比按各自读数着色（越冷越蓝 = 破位越多 / 越热越红 = 破位越少）· 每周一行汇总条显示当周 60/120/250 破位数变化（<span style="color:var(--frozen)">+ 转冷</span> / <span style="color:var(--warm)">− 转热</span>）与情绪区间 · <span style="color:var(--bad)">红色左条＝节点日</span>（情绪 ≤30 / ≥90）。<br>
+    数据自动保存在本浏览器中 · 建议定期点「备份 JSON」留存。<br>
+    破位占比越高＝越多个股跌破均线＝越冷（超卖）；越低＝市场越热（过热风险）。
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SEED = [{"date": "2026-01-13", "b60": 1678, "b120": 2007, "b250": 1039, "turnover": null, "voltag": "放量", "summary": null, "action": null, "reason": null, "emotion": 76, "reflect": null}, {"date": "2026-01-14", "b60": 1676, "b120": 2007, "b250": 1039, "turnover": 39414, "voltag": null, "summary": null, "action": null, "reason": null, "emotion": 70, "reflect": null}, {"date": "2026-01-15", "b60": 1680, "b120": 1991, "b250": 1078, "turnover": null, "voltag": "缩量", "summary": "短期情绪转弱 + 中期趋势修复 + 长期结构分化", "action": null, "reason": null, "emotion": 52, "reflect": null}, {"date": "2026-01-16", "b60": 1732, "b120": 2015, "b250": 1143, "turnover": null, "voltag": "放量", "summary": "风险增加 下一个交易日只卖不买", "action": "不操作", "reason": null, "emotion": 49, "reflect": "大叶股份"}, {"date": "2026-01-19", "b60": 1465, "b120": 1856, "b250": 1082, "turnover": null, "voltag": "缩量", "summary": "风险收敛，结构回暖，由“只卖不买”转为“观察可做”。", "action": "减仓", "reason": "上一个交易日收盘风险增加", "emotion": 80, "reflect": null}, {"date": "2026-01-20", "b60": 1481, "b120": 1865, "b250": 1081, "turnover": null, "voltag": "放量", "summary": "回暖后的回踩，短中期承压，长期稳定，维持观察。", "action": "开新仓", "reason": "想抢一个低成本，有点着急", "emotion": 67, "reflect": "国脉科技"}, {"date": "2026-01-21", "b60": 1416, "b120": 1794, "b250": 1079, "turnover": null, "voltag": "缩量", "summary": "修复延续，下一个交易日有机会会尝试", "action": "减仓", "reason": "个股放量 先出等回调", "emotion": 77, "reflect": null}, {"date": "2026-01-22", "b60": 1210, "b120": 1634, "b250": 991, "turnover": null, "voltag": "放量", "summary": "结构转强，放追高，尽量不开仓", "action": "开新仓", "reason": "根据昨日总结开始试仓", "emotion": 86, "reflect": "祥鑫科技"}, {"date": "2026-01-23", "b60": 973, "b120": 1418, "b250": 873, "turnover": 30852, "voltag": null, "summary": "情绪非常高 可能已过热 下一个交易日会降温", "action": "无操作", "reason": "大盘持续上涨 无回落买点", "emotion": 96, "reflect": "如果减仓后面几天回撤会很小"}, {"date": "2026-01-26", "b60": 1210, "b120": 1621, "b250": 974, "turnover": null, "voltag": "放量", "summary": "预期符合降温 短线大幅降温情绪转弱 风险增加 下个交易日只卖", "action": "开新仓", "reason": "有利润的出掉 跌倒年线的试错", "emotion": 52, "reflect": "开仓前先预判今日环境"}, {"date": "2026-01-27", "b60": 1464, "b120": 1770, "b250": 1058, "turnover": null, "voltag": "缩量", "summary": "不开新仓，做好防守", "action": "无操作", "reason": "风险未接触，止损还没到", "emotion": 52, "reflect": null}, {"date": "2026-01-28", "b60": 1702, "b120": 1944, "b250": 1147, "turnover": null, "voltag": "放量", "summary": "多周期结构同步恶化，回调非一次性完成，短期不具备进攻条件。", "action": "无操作", "reason": "就等止损了", "emotion": 53, "reflect": null}, {"date": "2026-01-29", "b60": 1874, "b120": 2093, "b250": 1208, "turnover": null, "voltag": "放量", "summary": "休息一周吧", "action": "无操作", "reason": "风险加剧", "emotion": 62, "reflect": null}, {"date": "2026-01-30", "b60": 2023, "b120": 2147, "b250": 1276, "turnover": null, "voltag": "缩量", "summary": "继续恶化", "action": "无操作", "reason": "持股待涨", "emotion": 47, "reflect": null}, {"date": "2026-02-02", "b60": 2661, "b120": 2623, "b250": 1560, "turnover": null, "voltag": "缩量", "summary": "空仓", "action": "无操作", "reason": "不止损", "emotion": 31, "reflect": null}, {"date": "2026-02-03", "b60": 2153, "b120": 2258, "b250": 1376, "turnover": null, "voltag": "缩量", "summary": "观察 保持防守", "action": "减仓", "reason": "不符合新模式买点", "emotion": 70, "reflect": null}, {"date": "2026-02-04", "b60": 1954, "b120": 2136, "b250": 1297, "turnover": null, "voltag": "缩量", "summary": "开始修复 继续观察", "action": "开新仓", "reason": "环境改善", "emotion": 58, "reflect": null}, {"date": "2026-02-05", "b60": 2143, "b120": 2280, "b250": 1361, "turnover": null, "voltag": "缩量", "summary": "缩量反弹后继续恶化 观察防守", "action": "减仓", "reason": "环境恶化", "emotion": 40, "reflect": "这是不是回踩确认？"}, {"date": "2026-02-06", "b60": 2100, "b120": 2249, "b250": 1356, "turnover": null, "voltag": "缩量", "summary": "小幅修复谨慎观察", "action": "减仓", "reason": "数据周期性恶化", "emotion": 48, "reflect": "这是不是回踩确认？"}, {"date": "2026-02-09", "b60": 1657, "b120": 1973, "b250": 1207, "turnover": null, "voltag": "放量", "summary": "放量修复 可能开始新周期", "action": "开新仓", "reason": "放量修复环境改善开仓试错", "emotion": 70, "reflect": null}, {"date": "2026-02-10", "b60": 1658, "b120": 1925, "b250": 1193, "turnover": null, "voltag": "缩量", "summary": "需等待后续是否再次放量确认新周期", "action": "减仓开仓", "reason": "做短线好像是在满足情绪", "emotion": 54, "reflect": "精工科技"}, {"date": "2026-02-11", "b60": 1698, "b120": 1961, "b250": 1213, "turnover": null, "voltag": "缩量", "summary": "短期不具备进攻条件。", "action": "无操作", "reason": "环境恶化", "emotion": 45, "reflect": null}, {"date": "2026-02-12", "b60": 1865, "b120": 2073, "b250": 1286, "turnover": null, "voltag": "放量", "summary": "放量恶化确认修复失败，短期回到弱势区间。", "action": "无操作", "reason": "环境恶化", "emotion": 53, "reflect": null}, {"date": "2026-02-13", "b60": 2065, "b120": 2219, "b250": 1379, "turnover": null, "voltag": "缩量", "summary": "修复确认失败后，结构继续恶化但缩量运行，维持防守。", "action": "减仓", "reason": "环境恶化", "emotion": 35, "reflect": null}, {"date": "2026-02-24", "b60": 1745, "b120": 1974, "b250": 1277, "turnover": null, "voltag": "放量", "summary": "放量修复，结构明显改善，风险缓解，但尚未形成持续性确认", "action": "开新仓", "reason": "放量修复试错", "emotion": 63, "reflect": null}, {"date": "2026-02-25", "b60": 1565, "b120": 1810, "b250": 1211, "turnover": null, "voltag": "放量", "summary": "三线连续放量改善，修复延续，结构确认进入回暖阶段。", "action": "减仓开仓", "reason": "金力永磁落袋", "emotion": 70, "reflect": null}, {"date": "2026-02-26", "b60": 1638, "b120": 1839, "b250": 1238, "turnover": null, "voltag": "放量", "summary": "结构未破坏，但进入测试阶段。", "action": "无操作", "reason": "观察", "emotion": 54, "reflect": null}, {"date": "2026-02-27", "b60": 1573, "b120": 1763, "b250": 1177, "turnover": null, "voltag": "缩量", "summary": "回踩后再次同步改善，结构延续修复，环境维持绿色。", "action": "止损", "reason": "结构性低点跌破", "emotion": 63, "reflect": "晓鸣股份亏损"}, {"date": "2026-03-02", "b60": 2196, "b120": 2195, "b250": 1492, "turnover": null, "voltag": "放量", "summary": "结构级别同步恶化，修复失败确认，进入风险阶段。", "action": "开新仓", "reason": "为什么要在没确认环境开仓？", "emotion": 51, "reflect": "月线模式 关注好环境等级"}, {"date": "2026-03-03", "b60": 2950, "b120": 2704, "b250": 1828, "turnover": null, "voltag": "放量", "summary": null, "action": "无操作", "reason": null, "emotion": 55, "reflect": null}, {"date": "2026-03-04", "b60": 3000, "b120": 2861, "b250": 1943, "turnover": null, "voltag": "缩量", "summary": "3000 无条件 停止", "action": "无操作", "reason": null, "emotion": 37, "reflect": null}, {"date": "2026-03-05", "b60": 2971, "b120": 2677, "b250": 1820, "turnover": null, "voltag": "放量", "summary": null, "action": "无操作", "reason": null, "emotion": 60, "reflect": null}, {"date": "2026-03-06", "b60": 2510, "b120": 2329, "b250": 1600, "turnover": null, "voltag": "缩量", "summary": "大叶股份补仓200股 新模式开仓 涨停 年k 基本面 业绩", "action": "开新仓", "reason": "沃顿", "emotion": 62, "reflect": null}, {"date": "2026-03-09", "b60": 2728, "b120": 2468, "b250": 1697, "turnover": null, "voltag": "放量", "summary": "明天不开仓 修复再开", "action": "开新仓", "reason": "新模式早盘竞价开仓", "emotion": 40, "reflect": null}, {"date": "2026-03-10", "b60": 2402, "b120": 2200, "b250": 1534, "turnover": 23979, "voltag": null, "summary": "大叶股份T200 行云科技卖出 明日可开仓", "action": "减仓", "reason": null, "emotion": 64, "reflect": null}, {"date": "2026-03-11", "b60": 2442, "b120": 2211, "b250": 1556, "turnover": 25084, "voltag": null, "summary": "明日不开仓", "action": "开新仓", "reason": "早盘竞价开仓", "emotion": 45, "reflect": null}, {"date": "2026-03-12", "b60": 2623, "b120": 2353, "b250": 1639, "turnover": 24419, "voltag": null, "summary": "明日不开仓 补仓大叶300股 立新能源明日卖出", "action": "补仓", "reason": "晶科科技，中电鑫龙明日卖出", "emotion": 39, "reflect": null}, {"date": "2026-03-13", "b60": 2754, "b120": 2458, "b250": 1731, "turnover": 24003, "voltag": null, "summary": "T出大叶300股 按计划卖出两只，中电鑫龙等跌30%", "action": "减仓", "reason": "下周一不开仓，新模式步入正轨", "emotion": 44, "reflect": null}, {"date": "2026-03-16", "b60": 2768, "b120": 2441, "b250": 1677, "turnover": 23253, "voltag": null, "summary": "明日继续观察，卖出信德新材原因大盘弱减仓", "action": "减仓", "reason": null, "emotion": 44, "reflect": null}, {"date": "2026-03-17", "b60": 3200, "b120": 2780, "b250": 1877, "turnover": 22079, "voltag": null, "summary": "明日不开仓 最强防守", "action": "无操作", "reason": null, "emotion": 34, "reflect": null}, {"date": "2026-03-18", "b60": 3047, "b120": 2643, "b250": 1779, "turnover": 20461, "voltag": null, "summary": "不开新仓，做好防守", "action": "无操作", "reason": null, "emotion": 58, "reflect": null}, {"date": "2026-03-19", "b60": 3646, "b120": 3104, "b250": 2097, "turnover": 21110, "voltag": null, "summary": "防守", "action": "无操作", "reason": "下一阶段必须有一项五星🌟", "emotion": 28, "reflect": null}, {"date": "2026-03-20", "b60": 4054, "b120": 3496, "b250": 2482, "turnover": 22868, "voltag": null, "summary": "防守", "action": "无操作", "reason": "这一阶段筛选的股票不够严格", "emotion": 30, "reflect": null}, {"date": "2026-03-23", "b60": 4602, "b120": 4119, "b250": 3202, "turnover": 24315, "voltag": null, "summary": "最冰点", "action": "减仓", "reason": null, "emotion": 27, "reflect": null}, {"date": "2026-03-24", "b60": 4327, "b120": 3784, "b250": 2799, "turnover": 20828, "voltag": null, "summary": "观察明日是否持续修复，开仓康达新材、森特股份", "action": "开新仓", "reason": "手上没有这只票会不会买", "emotion": 77, "reflect": "套牢的等跌50%补，或者牛市结束割掉"}, {"date": "2026-03-25", "b60": 4103, "b120": 3530, "b250": 2551, "turnover": 21798, "voltag": null, "summary": "还想买的补仓", "action": "减仓", "reason": null, "emotion": 87, "reflect": null}, {"date": "2026-03-26", "b60": 4224, "b120": 3700, "b250": 2708, "turnover": 19436, "voltag": null, "summary": "解套大叶，评分很高 但不是模式内", "action": "减仓", "reason": null, "emotion": 32, "reflect": null}, {"date": "2026-03-27", "b60": 4100, "b120": 3524, "b250": 2564, "turnover": 18533, "voltag": null, "summary": "执行力去哪了？", "action": "无操作", "reason": "精筛筛出来的为什么不买呢？", "emotion": 66, "reflect": null}, {"date": "2026-03-30", "b60": 4059, "b120": 3471, "b250": 2511, "turnover": 19159, "voltag": null, "summary": "横盘一段时间的才选模式内", "action": "无操作", "reason": null, "emotion": 56, "reflect": null}, {"date": "2026-03-31", "b60": 4260, "b120": 3681, "b250": 2664, "turnover": 19925, "voltag": null, "summary": "横盘一段时间的才选模式内", "action": "开新仓", "reason": null, "emotion": 36, "reflect": null}, {"date": "2026-04-01", "b60": 4101, "b120": 3503, "b250": 2485, "turnover": 20125, "voltag": null, "summary": "等待持续回暖", "action": "减仓", "reason": "横盘一段时间的才选模式内", "emotion": 61, "reflect": null}, {"date": "2026-04-02", "b60": 4266, "b120": 3701, "b250": 2669, "turnover": 18430, "voltag": null, "summary": "年K底部，横盘够久，首板倍量涨停，评分够高", "action": "无操作", "reason": "年K底部，横盘够久，首板涨停", "emotion": 31, "reflect": null}, {"date": "2026-04-03", "b60": 4537, "b120": 4010, "b250": 3013, "turnover": 16565, "voltag": null, "summary": "习惯波动。如果你连跌幅相对温和、永不退市的沪深 300 或 A500 都拿不住，那去碰个股（尤其是科创板 20% 跌幅的个股）无异于送死。", "action": "无操作", "reason": null, "emotion": 32, "reflect": null}, {"date": "2026-04-07", "b60": 4409, "b120": 3840, "b250": 2834, "turnover": 16143, "voltag": null, "summary": "开仓科创50", "action": "无操作", "reason": "ETF", "emotion": 68, "reflect": null}, {"date": "2026-04-08", "b60": 3985, "b120": 3320, "b250": 2413, "turnover": 24345, "voltag": null, "summary": "周K线观察 坚持持股", "action": "无操作", "reason": "ETF", "emotion": 88, "reflect": "习惯波动。如果你连跌幅相对温和、永不退市的沪深 300 或 A500 都拿不住，那去碰个股（尤其是科创板 20% 跌幅的个股）无异于送死。"}, {"date": "2026-04-09", "b60": 4109, "b120": 3513, "b250": 2589, "turnover": 21340, "voltag": null, "summary": "跌的挺凶的但是科创板没怎么跌", "action": "无操作", "reason": "全面转向ETF", "emotion": 41, "reflect": null}, {"date": "2026-04-10", "b60": 4000, "b120": 3381, "b250": 2488, "turnover": 23348, "voltag": null, "summary": "拿住 下周回撤是正常的", "action": "无操作", "reason": "计划换成沪深300和香港证券", "emotion": 62, "reflect": null}, {"date": "2026-04-13", "b60": 3979, "b120": 3419, "b250": 2509, "turnover": 21504, "voltag": null, "summary": "开仓科创50获利", "action": "减仓", "reason": "卖飞25%", "emotion": 49, "reflect": null}, {"date": "2026-04-14", "b60": 3845, "b120": 3297, "b250": 2444, "turnover": 23837, "voltag": null, "summary": "拿不住", "action": "无操作", "reason": null, "emotion": 62, "reflect": null}, {"date": "2026-04-15", "b60": 3833, "b120": 3320, "b250": 2496, "turnover": 24152, "voltag": null, "summary": "开仓香港证券，为啥追高开的因为怕行情直接启动没机会买", "action": "开仓", "reason": "等收盘，等情绪降温更好", "emotion": 46, "reflect": null}, {"date": "2026-04-16", "b60": 3645, "b120": 3139, "b250": 2357, "turnover": 23417, "voltag": null, "summary": "科创 创业 快到压力位了 拿不住 换证券拿住不动", "action": "无操作", "reason": "有机会再进中证500", "emotion": 68, "reflect": null}, {"date": "2026-04-17", "b60": 3618, "b120": 3138, "b250": 2386, "turnover": 24256, "voltag": null, "summary": "创业板ETF突破阻力继续 向上", "action": "无操作", "reason": null, "emotion": 56, "reflect": null}, {"date": "2026-04-20", "b60": 3474, "b120": 3041, "b250": 2332, "turnover": 25788, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 66, "reflect": null}, {"date": "2026-04-21", "b60": 3469, "b120": 3081, "b250": 2370, "turnover": 24085, "voltag": null, "summary": "强弱要换风格，创业要有异动", "action": "减仓", "reason": "并没有", "emotion": 43, "reflect": null}, {"date": "2026-04-22", "b60": 3376, "b120": 3041, "b250": 2369, "turnover": 25598, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 51, "reflect": null}, {"date": "2026-04-23", "b60": 3538, "b120": 3183, "b250": 2493, "turnover": 28045, "voltag": null, "summary": "等待过热1.23", "action": "无操作", "reason": null, "emotion": 40, "reflect": null}, {"date": "2026-04-24", "b60": 3613, "b120": 3237, "b250": 2524, "turnover": 26419, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 43, "reflect": null}, {"date": "2026-04-27", "b60": 3455, "b120": 3126, "b250": 2448, "turnover": 25895, "voltag": null, "summary": "主做ETF", "action": "无操作", "reason": null, "emotion": 58, "reflect": null}, {"date": "2026-04-28", "b60": 3551, "b120": 3247, "b250": 2556, "turnover": 25363, "voltag": null, "summary": "上一个年K 低点止损", "action": "无操作", "reason": null, "emotion": 46, "reflect": null}, {"date": "2026-04-29", "b60": 3305, "b120": 3046, "b250": 2424, "turnover": 25901, "voltag": null, "summary": "明日加仓国脉科技", "action": "无操作", "reason": null, "emotion": 66, "reflect": null}, {"date": "2026-04-30", "b60": 3191, "b120": 3006, "b250": 2409, "turnover": 27409, "voltag": null, "summary": "浮亏减仓紫光国威", "action": "减仓", "reason": null, "emotion": 62, "reflect": null}, {"date": "2026-05-06", "b60": 2954, "b120": 2859, "b250": 2316, "turnover": 32268, "voltag": null, "summary": "个股上一个年K 低点止损", "action": "无操作", "reason": "上一个年K 低点止损", "emotion": 75, "reflect": null}, {"date": "2026-05-07", "b60": 2769, "b120": 2782, "b250": 2262, "turnover": 31440, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 74, "reflect": null}, {"date": "2026-05-08", "b60": 2560, "b120": 2649, "b250": 2169, "turnover": 30485, "voltag": null, "summary": "不能不止损，买点-25%", "action": "无操作", "reason": null, "emotion": 70, "reflect": null}, {"date": "2026-05-11", "b60": 2422, "b120": 2555, "b250": 2127, "turnover": 35389, "voltag": null, "summary": "少做个股吧", "action": "无操作", "reason": "个股的话等下一次回调周期", "emotion": 72, "reflect": "这里已经涨了一个月了，目前预判会回调"}, {"date": "2026-05-12", "b60": 2661, "b120": 2713, "b250": 2282, "turnover": 32427, "voltag": null, "summary": "取消个股计划", "action": "无操作", "reason": "专心ETF", "emotion": 48, "reflect": null}, {"date": "2026-05-13", "b60": 2543, "b120": 2633, "b250": 2230, "turnover": 32400, "voltag": null, "summary": null, "action": "减仓", "reason": null, "emotion": 73, "reflect": null}, {"date": "2026-05-14", "b60": 2860, "b120": 2852, "b250": 2417, "turnover": 33622, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 45, "reflect": null}, {"date": "2026-05-15", "b60": 2929, "b120": 2891, "b250": 2465, "turnover": 33444, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 45, "reflect": null}, {"date": "2026-05-18", "b60": 2943, "b120": 2914, "b250": 2473, "turnover": 28939, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 57, "reflect": null}, {"date": "2026-05-19", "b60": 2780, "b120": 2825, "b250": 2408, "turnover": 28865, "voltag": null, "summary": null, "action": "加仓", "reason": null, "emotion": 75, "reflect": null}, {"date": "2026-05-20", "b60": 2945, "b120": 2927, "b250": 2530, "turnover": 29537, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 52, "reflect": null}, {"date": "2026-05-21", "b60": 3363, "b120": 3307, "b250": 2820, "turnover": 34816, "voltag": null, "summary": "别去想做个股了", "action": "无操作", "reason": null, "emotion": 33, "reflect": "预判正确✅"}, {"date": "2026-05-22", "b60": 3160, "b120": 3122, "b250": 2697, "turnover": 29033, "voltag": null, "summary": "75%找机会买入，25找机会卖出，月线收线", "action": "无操作", "reason": null, "emotion": 73, "reflect": null}, {"date": "2026-05-25", "b60": 3176, "b120": 3158, "b250": 2725, "turnover": 32057, "voltag": null, "summary": "75%找机会买入，25找机会卖出，月线收线", "action": "无操作", "reason": null, "emotion": 68, "reflect": null}, {"date": "2026-05-26", "b60": 3363, "b120": 3296, "b250": 2829, "turnover": 32436, "voltag": null, "summary": "75%找机会买入，25找机会卖出，月线收线", "action": "无操作", "reason": null, "emotion": 39, "reflect": null}, {"date": "2026-05-28", "b60": 3543, "b120": 3476, "b250": 3002, "turnover": 29681, "voltag": null, "summary": "75%找机会买入，25找机会卖出，月线收线", "action": "无操作", "reason": null, "emotion": 60, "reflect": null}, {"date": "2026-05-29", "b60": 3835, "b120": 3734, "b250": 3202, "turnover": 33190, "voltag": null, "summary": "只做核心ETF", "action": "无操作", "reason": null, "emotion": 41, "reflect": null}, {"date": "2026-06-01", "b60": 3710, "b120": 3624, "b250": 3094, "turnover": 28774, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 69, "reflect": null}, {"date": "2026-06-02", "b60": 3795, "b120": 3708, "b250": 3186, "turnover": 27929, "voltag": null, "summary": "75%找机会买入，25找机会卖出，月线收线", "action": "无操作", "reason": null, "emotion": 47, "reflect": null}, {"date": "2026-06-03", "b60": 3853, "b120": 3745, "b250": 3247, "turnover": 31302, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 46, "reflect": null}, {"date": "2026-06-04", "b60": 3972, "b120": 3821, "b250": 3350, "turnover": 27576, "voltag": null, "summary": "宽基ETF", "action": "无操作", "reason": null, "emotion": 46, "reflect": null}, {"date": "2026-06-05", "b60": 3917, "b120": 3804, "b250": 3329, "turnover": 30691, "voltag": null, "summary": "75%找机会买入，25找机会卖出，加月线形态", "action": "无操作", "reason": null, "emotion": 55, "reflect": null}, {"date": "2026-06-08", "b60": 4162, "b120": 4022, "b250": 3546, "turnover": 27959, "voltag": null, "summary": "75%找机会买入，25找机会卖出，加月线形态", "action": "无操作", "reason": null, "emotion": 41, "reflect": null}, {"date": "2026-06-09", "b60": 4034, "b120": 3923, "b250": 3484, "turnover": 26402, "voltag": null, "summary": null, "action": "无操作", "reason": null, "emotion": 71, "reflect": null}, {"date": "2026-06-10", "b60": 4153, "b120": 3997, "b250": 3569, "turnover": 26192, "voltag": null, "summary": "沪深300+中证500 1000 2000", "action": "无操作", "reason": null, "emotion": 48, "reflect": null}, {"date": "2026-06-11", "b60": 4234, "b120": 4072, "b250": 3636, "turnover": 25520, "voltag": null, "summary": "沪深300+中证500 1000 2000", "action": "无操作", "reason": null, "emotion": 44, "reflect": null}, {"date": "2026-06-12", "b60": 4187, "b120": 4030, "b250": 3575, "turnover": 32149, "voltag": null, "summary": "沪深300+中证500 1000 2000 各25%", "action": "无操作", "reason": null, "emotion": 65, "reflect": null}, {"date": "2026-06-15", "b60": 3987, "b120": 3915, "b250": 3459, "turnover": 30311, "voltag": null, "summary": "已开沪深300. 找机会开其他", "action": null, "reason": null, "emotion": 83, "reflect": null}, {"date": "2026-06-16", "b60": 3910, "b120": 3869, "b250": 3442, "turnover": 30646, "voltag": null, "summary": null, "action": null, "reason": null, "emotion": 79, "reflect": null}, {"date": "2026-06-17", "b60": 3918, "b120": 3874, "b250": 3489, "turnover": 30917, "voltag": null, "summary": null, "action": null, "reason": null, "emotion": 56, "reflect": null}, {"date": "2026-06-18", "b60": 3978, "b120": 3913, "b250": 3515, "turnover": 33100, "voltag": null, "summary": null, "action": null, "reason": null, "emotion": 55, "reflect": null}, {"date": "2026-06-22", "b60": 3956, "b120": 3895, "b250": 3505, "turnover": 37371, "voltag": null, "summary": "70%还是底部，今日是放量的，后续有可能持续上涨", "action": "减仓", "reason": "减仓香港证券找机会换中证500", "emotion": 79, "reflect": null}];
+const KEY = 'tradinglog.entries.v1';
+const KEY_TOTAL = 'tradinglog.total.v1';
+const KEY_BACKUP = 'tradinglog.lastbackup.v1';
+let persistGranted = null;
+
+/* ---------- storage layer: window.storage (claude.ai) -> localStorage -> memory ---------- */
+const mem = {};
+const store = {
+  async get(k){
+    try{ if(window.storage&&window.storage.get){ const r=await window.storage.get(k); return r?r.value:null; } }catch(e){}
+    try{ return localStorage.getItem(k); }catch(e){}
+    return (k in mem)?mem[k]:null;
+  },
+  async set(k,v){
+    try{ if(window.storage&&window.storage.set){ await window.storage.set(k,v); return; } }catch(e){}
+    try{ localStorage.setItem(k,v); return; }catch(e){}
+    mem[k]=v;
+  }
+};
+
+let DATA = [];
+let TOTAL = 5526;
+let editingDate = null;
+let chartN = 60;
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const pct = (n)=> (n==null||TOTAL<=0)? null : (n/TOTAL*100);
+const fmt1 = (x)=> x==null? '–' : x.toFixed(1);
+
+function tempBand(p){ // p = % below 60MA
+  if(p==null) return {lbl:'—',c:'var(--neutral)',sub:''};
+  if(p<25)  return {lbl:'过热',c:'var(--hot)',   sub:'多数个股在均线上方 · 追高风险高'};
+  if(p<40)  return {lbl:'偏热',c:'var(--warm)',  sub:'结构偏强 · 注意情绪过热'};
+  if(p<60)  return {lbl:'中性',c:'var(--neutral)',sub:'多空相对均衡'};
+  if(p<75)  return {lbl:'偏冷',c:'var(--cool)',  sub:'结构偏弱 · 留意修复机会'};
+  return        {lbl:'冰点',c:'var(--frozen)',sub:'多数个股破位 · 超卖区'};
+}
+function isNode(e){ return e!=null && (e<=30 || e>=90); }           // 极端情绪 = 节点
+function emoColor(e){ return e==null?'var(--faint)': isNode(e)?'var(--bad)':'var(--text)'; }
+function mondayOf(dateStr){ const d=new Date(dateStr+'T00:00:00'); const off=(d.getDay()+6)%7; d.setDate(d.getDate()-off); const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
+function weekParity(){ const map={}; let i=0; DATA.forEach(r=>{ const wk=mondayOf(r.date); if(!(wk in map)) map[wk]=i++; }); return map; }
+function actionClass(a){
+  if(!a) return 'a-none';
+  if(/止损|减仓/.test(a) && /开|加|补/.test(a)) return 'a-mix';
+  if(/开|加|补/.test(a)) return 'a-open';
+  if(/减|止损/.test(a)) return 'a-cut';
+  return 'a-none';
+}
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1900); }
+function sortData(){ DATA.sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0); }
+async function persist(){ await store.set(KEY, JSON.stringify(DATA)); }
+
+/* turnover/voltag normalize: stored as number(亿) OR voltag string */
+function volDisplay(rec, prevTurn){
+  if(typeof rec.turnover==='number'){
+    let arrow='';
+    if(typeof prevTurn==='number'){ arrow = rec.turnover>prevTurn? '<span class="up">↑放</span>' : rec.turnover<prevTurn? '<span class="down">↓缩</span>':'·平'; }
+    return rec.turnover+'亿 '+arrow;
+  }
+  if(rec.voltag) return rec.voltag;
+  return '—';
+}
+
+/* ---------- init ---------- */
+async function init(){
+  const raw = await store.get(KEY);
+  if(raw){ try{ DATA = JSON.parse(raw); }catch(e){ DATA=[]; } }
+  if(!raw || DATA.length===0){ DATA = SEED.slice(); await persist(); }
+  const t = await store.get(KEY_TOTAL);
+  TOTAL = t? parseInt(t,10) : 5526;
+  $('totalStocks').value = TOTAL;
+  sortData();
+  $('f_date').value = todayStr();
+  bind();
+  renderAll();
+  refreshTempFromForm();
+  await requestPersist();
+  updateStatus();
+}
+async function requestPersist(){
+  try{
+    if(navigator.storage && navigator.storage.persisted){
+      persistGranted = await navigator.storage.persisted();
+      if(!persistGranted && navigator.storage.persist){ persistGranted = await navigator.storage.persist(); }
+    }
+  }catch(e){ persistGranted=null; }
+}
+function daysSince(dateStr){ if(!dateStr) return Infinity; const a=new Date(dateStr+'T00:00:00'), b=new Date(todayStr()+'T00:00:00'); return Math.round((b-a)/86400000); }
+async function updateStatus(){
+  const last = await store.get(KEY_BACKUP);
+  const pTxt = persistGranted===true? '<span style="color:var(--good)">持久存储已开启</span>'
+            : persistGranted===false? '<span style="color:var(--warm)">最佳努力模式 · 建议「添加到主屏幕」</span>'
+            : '本地存储';
+  const d = daysSince(last);
+  let bTxt = last? ('上次备份 '+last+'（'+d+' 天前）') : '<span style="color:var(--warm)">尚未备份</span>';
+  if(last && d>=7) bTxt = '<span style="color:var(--bad)">上次备份 '+d+' 天前 · 建议立即备份</span>';
+  $('statusLine').innerHTML = `已存 ${DATA.length} 条 · ${pTxt} · ${bTxt}`;
+}
+function todayStr(){ const d=new Date(); const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
+
+/* ---------- form ---------- */
+function bind(){
+  $('f_emotion').addEventListener('input', e=>$('emoVal').textContent=e.target.value);
+  ['f_b60','f_b120','f_b250','f_turnover'].forEach(id=> $(id).addEventListener('input', refreshTempFromForm));
+  $('f_date').addEventListener('change', ()=>{ checkDup(); });
+  $('btnSave').addEventListener('click', save);
+  $('btnReset').addEventListener('click', resetForm);
+  $('totalStocks').addEventListener('change', async e=>{ const v=parseInt(e.target.value,10); if(v>0){ TOTAL=v; await store.set(KEY_TOTAL,String(v)); renderAll(); refreshTempFromForm(); toast('总数已更新为 '+v); } });
+  $('search').addEventListener('input', renderTable);
+  $('btnExportCsv').addEventListener('click', exportCsv);
+  $('btnExportJson').addEventListener('click', exportJson);
+  $('btnImport').addEventListener('click', ()=>$('fileImport').click());
+  $('fileImport').addEventListener('change', importJson);
+  $('rangeBtns').addEventListener('click', e=>{ if(e.target.dataset.n!==undefined){ chartN=parseInt(e.target.dataset.n,10); [...$('rangeBtns').children].forEach(b=>b.classList.toggle('on', b===e.target)); renderCharts(); } });
+}
+function checkDup(){
+  const d=$('f_date').value;
+  const exist = DATA.find(r=>r.date===d);
+  $('dupHint').textContent = (exist && d!==editingDate) ? '该日期已有记录，保存将覆盖' : '';
+}
+function refreshTempFromForm(){
+  const b60=numOrNull($('f_b60').value), b120=numOrNull($('f_b120').value), b250=numOrNull($('f_b250').value);
+  $('h60').textContent  = b60!=null? fmt1(pct(b60))+'%':'';
+  $('h120').textContent = b120!=null? fmt1(pct(b120))+'%':'';
+  $('h250').textContent = b250!=null? fmt1(pct(b250))+'%':'';
+  // turnover hint vs last entry
+  const tv=$('f_turnover').value.trim();
+  const last=DATA[DATA.length-1];
+  if(tv && !isNaN(+tv) && last && typeof last.turnover==='number'){
+    $('hVol').textContent = (+tv>last.turnover?'↑ 放量':+tv<last.turnover?'↓ 缩量':'· 持平')+'（昨 '+last.turnover+'）';
+  } else $('hVol').textContent='';
+  if(b60!=null) renderTemp({b60,b120,b250,turnover: (tv&&!isNaN(+tv))?+tv:null, voltag:(tv&&isNaN(+tv))?tv:null, emotion:+$('f_emotion').value, action:$('f_action').value, date:$('f_date').value}, true);
+  else renderTemp(DATA[DATA.length-1], false);
+  checkDup();
+}
+function numOrNull(v){ v=(''+v).trim(); return v===''?null:(isNaN(+v)?null:+v); }
+
+function save(){
+  const date=$('f_date').value;
+  if(!date){ toast('请先选择日期'); return; }
+  const b60=numOrNull($('f_b60').value);
+  if(b60==null){ toast('请至少填写 60日均下 个股数'); return; }
+  const tv=$('f_turnover').value.trim();
+  const rec={
+    date,
+    b60, b120:numOrNull($('f_b120').value), b250:numOrNull($('f_b250').value),
+    turnover: (tv&&!isNaN(+tv))? +tv : null,
+    voltag:   (tv&&isNaN(+tv))? tv : null,
+    summary:$('f_summary').value.trim()||null,
+    action:$('f_action').value.trim()||null,
+    reason:$('f_reason').value.trim()||null,
+    emotion:+$('f_emotion').value,
+    reflect:$('f_reflect').value.trim()||null
+  };
+  const i = DATA.findIndex(r=>r.date===date);
+  if(i>=0) DATA[i]=rec; else DATA.push(rec);
+  sortData(); persist(); renderAll();
+  toast(i>=0||date===editingDate?'已更新 '+date:'已保存 '+date);
+  resetForm();
+}
+function resetForm(){
+  editingDate=null;
+  $('f_date').value=todayStr();
+  ['f_b60','f_b120','f_b250','f_turnover','f_action','f_summary','f_reason','f_reflect'].forEach(id=>$(id).value='');
+  $('f_emotion').value=60; $('emoVal').textContent='60';
+  $('editFlag').classList.remove('on'); $('btnSave').textContent='保存今日';
+  refreshTempFromForm();
+}
+function loadToForm(rec){
+  editingDate=rec.date;
+  $('f_date').value=rec.date;
+  $('f_b60').value=rec.b60??''; $('f_b120').value=rec.b120??''; $('f_b250').value=rec.b250??'';
+  $('f_turnover').value = rec.turnover!=null? rec.turnover : (rec.voltag||'');
+  $('f_action').value=rec.action||''; $('f_summary').value=rec.summary||'';
+  $('f_reason').value=rec.reason||''; $('f_reflect').value=rec.reflect||'';
+  $('f_emotion').value=rec.emotion??60; $('emoVal').textContent=rec.emotion??60;
+  $('editFlag').classList.add('on'); $('btnSave').textContent='更新记录';
+  refreshTempFromForm();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- render: temperature ---------- */
+function renderTemp(rec, live){
+  if(!rec){ return; }
+  const p60=pct(rec.b60), p120=pct(rec.b120), p250=pct(rec.b250);
+  const band=tempBand(p60);
+  $('tempPct').textContent = p60!=null? fmt1(p60)+'%':'–';
+  $('tempPct').style.color = band.c;
+  $('tempLbl').textContent = band.lbl; $('tempLbl').style.color=band.c;
+  $('tempSub').textContent = band.sub || '';
+  $('tempDate').textContent = (live?'实时 · ':'')+(rec.date||'');
+  $('tempPin').style.left = (p60!=null? Math.max(0,Math.min(100,p60)) : 50)+'%';
+  // rows
+  const rows=[['60日',p60],['120日',p120],['250日',p250]];
+  $('tempRows').innerHTML = rows.map(([nm,p])=>{
+    const c=tempBand(p).c, w=p!=null?Math.max(2,Math.min(100,p)):0;
+    return `<div class="trow"><span class="nm">${nm}破位</span>
+      <div class="track"><div class="fill" style="width:${w}%;background:${c}"></div></div>
+      <span class="pv" style="color:${c}">${fmt1(p)}%</span></div>`;
+  }).join('');
+  // meta
+  $('mVol').innerHTML = rec.turnover!=null? rec.turnover+'<span style="font-size:12px;color:var(--faint)"> 亿</span>' : (rec.voltag||'—');
+  $('mEmo').textContent = rec.emotion!=null? rec.emotion : '—';
+  $('mEmo').style.color = emoColor(rec.emotion);
+  $('mEmo').style.fontWeight = isNode(rec.emotion)?'700':'400';
+  $('mAct').textContent = rec.action||'—';
+}
+
+/* ---------- render: charts (pure SVG) ---------- */
+function buildPath(vals, W,H,pad, ymin,ymax){
+  const n=vals.length; if(n===0) return '';
+  const xs=i=> n===1? pad+(W-2*pad)/2 : pad + (W-2*pad)*i/(n-1);
+  const ys=v=> H-pad - (H-2*pad)*((v-ymin)/(ymax-ymin||1));
+  let d='', started=false;
+  vals.forEach((v,i)=>{ if(v==null){started=false;return;} const cmd=started?'L':'M'; d+=`${cmd}${xs(i).toFixed(1)} ${ys(v).toFixed(1)} `; started=true; });
+  return d;
+}
+function gridline(y,W,pad,label){
+  return `<line x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}" stroke="var(--border)" stroke-width="1"/>`+
+         (label!=null?`<text x="${pad-6}" y="${y+3}" text-anchor="end" font-size="9" fill="var(--faint)" font-family="var(--mono)">${label}</text>`:'');
+}
+function slice(){ return chartN>0? DATA.slice(-chartN) : DATA.slice(); }
+function weekSeps(arr,W,H,pad){
+  // faint vertical line at each new trading week (Monday boundary)
+  const n=arr.length; if(n<2) return '';
+  let s='', prev=null;
+  arr.forEach((r,i)=>{ const wk=mondayOf(r.date); if(prev!==null && wk!==prev){ const x=pad+(W-2*pad)*i/(n-1); s+=`<line x1="${x.toFixed(1)}" y1="${pad}" x2="${x.toFixed(1)}" y2="${H-pad}" stroke="var(--border)" stroke-width="1" opacity=".55"/>`; } prev=wk; });
+  return s;
+}
+function renderCharts(){
+  const W=600,H=220,pad=26;
+  const arr=slice();
+  const seps=weekSeps(arr,W,H,pad);
+  // breadth
+  const p60=arr.map(r=>pct(r.b60)), p120=arr.map(r=>pct(r.b120)), p250=arr.map(r=>pct(r.b250));
+  let g='';
+  [25,50,75].forEach(v=>{ const y=H-pad-(H-2*pad)*(v/100); g+=gridline(y,W,pad,v); });
+  g+=gridline(H-pad,W,pad,0); g+=gridline(pad,W,pad,100);
+  const lines=[['#a082c8',p250,1.6],['#6aa9c9',p120,1.6],['#d9b56a',p60,2.2]];
+  let paths=lines.map(([c,v,w])=>`<path d="${buildPath(v,W,H,pad,0,100)}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`).join('');
+  // last point dot for 60
+  let dot=''; for(let i=p60.length-1;i>=0;i--){ if(p60[i]!=null){ const x= p60.length===1?pad+(W-2*pad)/2:pad+(W-2*pad)*i/(p60.length-1); const y=H-pad-(H-2*pad)*(p60[i]/100); dot=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#d9b56a"/>`; break; } }
+  $('breadthChart').innerHTML = seps+g+paths+dot;
+
+  // emotion
+  const emo=arr.map(r=> r.emotion==null?null:r.emotion);
+  let g2='';
+  [25,50,75].forEach(v=>{ const y=H-pad-(H-2*pad)*(v/100); g2+=gridline(y,W,pad,v); });
+  g2+=gridline(H-pad,W,pad,0); g2+=gridline(pad,W,pad,100);
+  const ep=buildPath(emo,W,H,pad,0,100);
+  // red node dots at extremes (<=30 / >=90)
+  let nodes=''; arr.forEach((r,i)=>{ if(isNode(r.emotion)){ const x= arr.length===1?pad+(W-2*pad)/2:pad+(W-2*pad)*i/(arr.length-1); const y=H-pad-(H-2*pad)*(r.emotion/100); nodes+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="var(--bad)"/>`; } });
+  let edot=''; for(let i=emo.length-1;i>=0;i--){ if(emo[i]!=null){ const x= emo.length===1?pad+(W-2*pad)/2:pad+(W-2*pad)*i/(emo.length-1); const y=H-pad-(H-2*pad)*(emo[i]/100); edot=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${emoColor(emo[i])==='var(--text)'?'var(--brass)':emoColor(emo[i])}"/>`; break; } }
+  $('emoChart').innerHTML = seps+g2+`<path d="${ep}" fill="none" stroke="var(--brass)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`+nodes+edot;
+}
+
+/* ---------- render: table ---------- */
+function pcell(p, withDot){
+  if(p==null) return '<span class="pct" style="color:var(--faint)">–</span>';
+  const c=tempBand(p).c;
+  return (withDot?`<span class="b-dot" style="background:${c}"></span>`:'')+`<span class="pct" style="color:${c}">${fmt1(p)}%</span>`;
+}
+function deltaCell(d){
+  if(d==null) return '<b style="color:var(--faint)">·</b>';
+  const c = d>0?'var(--frozen)': d<0?'var(--warm)':'var(--faint)';   // 破位增多→转冷(蓝)；减少→转热(暖)
+  const s = d>0?'+':'';
+  return `<b style="color:${c}">${s}${d}</b>`;
+}
+function dayRow(r){
+  const idx=DATA.findIndex(x=>x.date===r.date);
+  const prev = idx>0? DATA[idx-1].turnover : null;
+  const p60=pct(r.b60), p120=pct(r.b120), p250=pct(r.b250);
+  const node = isNode(r.emotion);
+  const tr=document.createElement('tr');
+  tr.className = 'dayrow'+(node?' node':'');
+  const txt = (r.summary?`<div class="cell-text">${esc(r.summary)}</div>`:'') + (r.reflect?`<div class="cell-text rs">↳ ${esc(r.reflect)}</div>`:'');
+  tr.innerHTML=`
+    <td class="num"><span class="nodeDot"></span>${r.date.slice(5)}</td>
+    <td class="num">${pcell(p60,true)}</td>
+    <td class="num">${pcell(p120,false)}</td>
+    <td class="num">${pcell(p250,false)}</td>
+    <td><span class="vol">${volDisplay(r,prev)}</span></td>
+    <td>${r.action?`<span class="actiontag ${actionClass(r.action)}">${esc(r.action)}</span>`:'—'}</td>
+    <td>${txt||'—'}</td>
+    <td style="color:var(--muted);max-width:160px">${r.reason?esc(r.reason):'—'}</td>
+    <td class="num emoCell" style="color:${emoColor(r.emotion)}">${r.emotion??'—'}</td>
+    <td><button class="rowdel" title="删除">✕</button></td>`;
+  tr.addEventListener('click', e=>{ if(e.target.classList.contains('rowdel')) return; loadToForm(r); });
+  tr.querySelector('.rowdel').addEventListener('click', e=>{ e.stopPropagation(); if(confirm('删除 '+r.date+' 的记录？')){ DATA=DATA.filter(x=>x.date!==r.date); persist(); renderAll(); toast('已删除 '+r.date); } });
+  return tr;
+}
+function weekHeadRow(grp){               // grp: rows of one week, newest-first
+  const end=grp[0], start=grp[grp.length-1];   // chronological end / start
+  const dB=(a,b)=> (a!=null&&b!=null)? a-b : null;
+  const d60=dB(end.b60,start.b60), d120=dB(end.b120,start.b120), d250=dB(end.b250,start.b250);
+  const emos=grp.map(r=>r.emotion).filter(x=>x!=null);
+  const emoTxt = emos.length? `情绪 ${Math.min(...emos)}–${Math.max(...emos)}` : '';
+  const band=tempBand(pct(end.b60));
+  const md=s=>s.slice(5);
+  const tr=document.createElement('tr');
+  tr.className='week-head';
+  tr.innerHTML=`<td colspan="10"><div class="whead">
+    <span class="wh-range">${md(start.date)}–${md(end.date)}<span class="wh-days">${grp.length}天</span></span>
+    <span class="wh-deltas">
+      <span>60↓ ${deltaCell(d60)}</span>
+      <span>120↓ ${deltaCell(d120)}</span>
+      <span>250↓ ${deltaCell(d250)}</span>
+    </span>
+    <span class="wh-emo">${emoTxt}</span>
+    <span class="wh-temp" style="color:${band.c}"><span class="wd" style="background:${band.c}"></span>${band.lbl} ${fmt1(pct(end.b60))}%</span>
+  </div></td>`;
+  return tr;
+}
+function renderTable(){
+  const q=$('search').value.trim().toLowerCase();
+  const rows = DATA.slice().reverse().filter(r=>{
+    if(!q) return true;
+    return [r.summary,r.reason,r.reflect,r.action].some(x=> x && x.toLowerCase().includes(q));
+  });
+  $('rowCount').textContent = DATA.length+' 条';
+  $('emptyState').style.display = DATA.length? 'none':'block';
+  const tb=$('tbody'); tb.innerHTML='';
+  if(q){                                  // searching: flat list, no week headers
+    rows.forEach(r=> tb.appendChild(dayRow(r)));
+    return;
+  }
+  // group consecutive rows by trading week (newest-first)
+  let grp=[], curWk=null;
+  const flush=()=>{ if(grp.length){ tb.appendChild(weekHeadRow(grp)); grp.forEach(r=> tb.appendChild(dayRow(r))); grp=[]; } };
+  rows.forEach(r=>{ const wk=mondayOf(r.date); if(wk!==curWk){ flush(); curWk=wk; } grp.push(r); });
+  flush();
+}
+function esc(s){ return (''+s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderAll(){ renderTable(); renderCharts(); if(!editingDate) renderTemp(DATA[DATA.length-1], false); if(typeof updateStatus==='function') updateStatus(); }
+
+/* ---------- export / import ---------- */
+function exportJson(){
+  download('交易日志_备份_'+todayStr()+'.json', JSON.stringify(DATA,null,1), 'application/json');
+  store.set(KEY_BACKUP, todayStr()); updateStatus();
+  toast('已导出 JSON 备份');
+}
+function exportCsv(){
+  const head=['日期','60日均下','120日均下','250日均下','60%','120%','250%','成交额/量能','当日行为','总结','原因','情绪分','反思'];
+  const lines=[head.join(',')];
+  DATA.forEach(r=>{
+    const vol = r.turnover!=null? r.turnover : (r.voltag||'');
+    const row=[r.date,nz(r.b60),nz(r.b120),nz(r.b250),fmt1(pct(r.b60)),fmt1(pct(r.b120)),fmt1(pct(r.b250)),vol,r.action||'',r.summary||'',r.reason||'',r.emotion??'',r.reflect||''];
+    lines.push(row.map(csvCell).join(','));
+  });
+  download('交易日志_'+todayStr()+'.csv', '\uFEFF'+lines.join('\r\n'), 'text/csv');
+  toast('已导出 CSV');
+}
+function nz(x){return x==null?'':x;}
+function csvCell(v){ v=(''+(v??'')); return /[",\n]/.test(v)? '"'+v.replace(/"/g,'""')+'"' : v; }
+function download(name,content,type){ const b=new Blob([content],{type}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(u),1000); }
+function importJson(e){
+  const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+    const arr=JSON.parse(rd.result);
+    if(!Array.isArray(arr)) throw 0;
+    if(confirm('导入 '+arr.length+' 条记录？\n相同日期将被覆盖，其余合并。')){
+      const map={}; DATA.forEach(r=>map[r.date]=r); arr.forEach(r=>{ if(r&&r.date) map[r.date]=r; });
+      DATA=Object.values(map); sortData(); persist(); renderAll(); toast('已导入 '+arr.length+' 条');
+    }
+  }catch(err){ toast('文件格式无法识别'); } e.target.value=''; };
+  rd.readAsText(f);
+}
+
+init();
+</script>
+</body>
+</html>

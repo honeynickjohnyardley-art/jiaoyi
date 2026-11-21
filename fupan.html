@@ -2,7 +2,7 @@
 <html lang="zh-CN"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>复盘本 V3 · 纪律与计划复盘</title>
+<title>复盘本 V3 · 交易复盘</title>
 <style>
 :root{
   --bg:#E8EBEE;--surface:#F7F8F9;--ink:#18202B;--muted:#65707C;--line:#D3D8DE;--chip:#DFE3E8;
@@ -681,8 +681,11 @@ function planned(t,n){
 }
 const reviewed=t=>{const n=noteOf(t);return !!(n.tags.length||n.text.trim()||n.lesson.trim()||n.tp!=null||n.sl!=null||n.riskAmount!=null||n.execution||n.after||n.afterVerified)};
 function reviewState(t){
-  const n=noteOf(t),p=planned(t,n);
-  if(p.validPrices&&p.amountOK&&(n.execution==="follow"||n.execution==="violate"))return "complete";
+  const n=noteOf(t);
+  const decided=n.execution==="follow"||n.execution==="violate";
+  if(n.text.trim()&&(decided||n.execution==="unknown"))return "complete";
+  const p=planned(t,n);
+  if(decided&&p.validPrices&&p.amountOK)return "complete";
   return reviewed(t)?"partial":"none";
 }
 const reviewLabel=t=>({complete:"复盘完整",partial:"部分复盘",none:"未复盘"})[reviewState(t)];
@@ -723,9 +726,6 @@ function tagStats(list){
   for(const t of list){const n=noteOf(t);for(const g of n.tags){
     if(!m.has(g))m.set(g,{tag:g,trades:[],pnl:0,verified:0,toTp:0,toSl:0});
     const s=m.get(g);s.trades.push(t);s.pnl+=t.pnl;
-    if(g===EARLY_TP&&planned(t,n).status==="confirmed_by_user"){
-      s.verified++;if(n.after==="tp")s.toTp++;if(n.after==="sl")s.toSl++;
-    }
   }}
   return [...m.values()].sort((a,b)=>b.trades.length-a.trades.length||a.pnl-b.pnl);
 }
@@ -736,12 +736,11 @@ function renderTop(){
   const bad=tagStats(list).filter(s=>!GOOD_TAGS.includes(s.tag)&&!NEUTRAL_TAGS.includes(s.tag));
   const mem=$("#memory");
   if(!bad.length){
-    mem.innerHTML=`<div class="memory empty"><div class="k">最常犯的错</div><div class="tag">还没有记录</div><div class="facts">点开任意一笔交易，给它打上标签、写下当时的情况。同样的错误犯到第二次，就会出现在这里。</div></div>`;
+    mem.innerHTML=`<div class="memory empty"><div class="k">最常犯的错</div><div class="tag">还没有记录</div><div class="facts">这里仅显示已有的历史错误分类。新复盘请写在交易记录里。</div></div>`;
   }else{
     const s=bad[0];
     const withWords=s.trades.map(t=>({t,n:noteOf(t)})).filter(x=>x.n.lesson.trim()||x.n.text.trim()).sort((a,b)=>b.t.closeTime<a.t.closeTime?-1:1)[0];
     let facts=`犯了 <b>${s.trades.length}</b> 次，这些交易合计 <b>${fmtPnl(s.pnl)}</b>`;
-    if(s.tag===EARLY_TP&&s.verified)facts+=`；已核对后续走势 <b>${s.verified}</b> 笔（先止盈 ${s.toTp}、先止损 ${s.toSl}）`;
     let q="";
     if(withWords){const w=withWords.n.lesson.trim()||withWords.n.text.trim();q=`<blockquote>${esc(w)}<small>${withWords.n.lesson.trim()?"你给自己定的规则":"你当时写的"}，${md(withWords.t.closeTime)} ${esc(mkInfo(withWords.t.market).name)}</small></blockquote>`}
     mem.innerHTML=`<div class="memory"><div class="k">最常犯的错${S.mk==="ALL"?"":"（"+esc(mkInfo(S.mk).name)+"）"}</div><div class="tag">${esc(s.tag)}</div><div class="facts">${facts}</div>${q}</div>`;
@@ -753,9 +752,6 @@ function renderTop(){
   const rv=list.filter(t=>reviewState(t)==="complete").length;
   const assessed=list.filter(t=>["follow","violate"].includes(noteOf(t).execution));
   const follows=assessed.filter(t=>noteOf(t).execution==="follow").length;
-  const withRisk=list.filter(t=>planned(t,noteOf(t)).amountOK);
-  const avgR=withRisk.length?withRisk.reduce((a,t)=>a+planned(t,noteOf(t)).actualR,0)/withRisk.length:null;
-  const confirmed=list.filter(t=>planned(t,noteOf(t)).status==="confirmed_by_user").length;
   const eq=[...list].sort((a,b)=>a.closeTime<b.closeTime?-1:1);let c=0;
   const curvePts=[{value:0,delta:0,label:"起点",market:"",side:""},...eq.map(t=>({value:(c+=t.pnl),delta:t.pnl,label:md(t.closeTime),market:mkInfo(t.market).name,side:t.side==="long"?"做多":"做空"}))];
   $("#stats").innerHTML=`<div class="stats ${n>1?"withcurve":""}">
@@ -765,9 +761,6 @@ function renderTop(){
     <div><div class="l">复盘完整</div><div class="v">${rv}/${n}</div></div></div>
     <div class="quality-strip">
       <span>纪律执行 <b>${assessed.length?Math.round(follows/assessed.length*100)+"%":"—"}</b> <small>（${follows}/${assessed.length} 笔已评价）</small></span>
-      <span>已填初始风险 <b>${withRisk.length}/${n}</b></span>
-      <span>平均实际 R <b>${avgR==null?"—":(avgR>0?"+":"")+avgR.toFixed(2)+"R"}</b> <small>（仅${withRisk.length}笔）</small></span>
-      <span>计划结果已核对 <b>${confirmed}</b> 笔</span>
     </div>
     ${n>1?`<div class="curve">${spark(curvePts)}</div>`:""}`;
   if(n>1)requestAnimationFrame(bindCurveHover);
@@ -828,7 +821,6 @@ function bindCurveHover(){
 
 function rowSummary(t,compact=false){
   const i=mkInfo(t.market),n=noteOf(t);
-  const tags=n.tags.map(g=>`<span class="tg ${GOOD_TAGS.includes(g)?"good":BAD_TAGS.includes(g)?"bad":""}">${esc(g)}</span>`).join("");
   const snip=(n.lesson||n.text||"").trim();
   if(compact){
     const tag=`<span class="tg compact-tag ${reviewState(t)==="complete"?"good":""}">${reviewLabel(t)}</span>`;
@@ -837,14 +829,13 @@ function rowSummary(t,compact=false){
   return `<div class="l1"><span class="mk">${esc(i.name)}</span><span class="side">${t.side==="long"?"做多":"做空"}${t.qty&&t.qty!==1?" "+t.qty:""}</span><span class="when">${md(t.openTime)} ${timezoneBadge(t)}</span></div>
   <div class="pnl ${cls(t.pnl)}">${fmtPnl(t.pnl)}</div>
   <div class="l2"><span class="num">${fmtP(t.openPrice,i.dp)}</span> → <span class="num">${fmtP(t.closePrice,i.dp)}</span>　<span class="hd">持仓 ${hold(t.openTime,t.closeTime)}</span></div>
-  ${tags?`<div class="tags">${tags}</div>`:""}
   ${snip?`<div class="snip">${esc(snip)}</div>`:""}<div class="review-pill ${reviewState(t)}">${reviewLabel(t)}</div>`;
 }
 function isDesktopList(){return window.matchMedia&&window.matchMedia("(min-width:900px)").matches}
 function detailHtml(t){
   if(!t)return `<div class="detail-empty"><div><b>选择一笔交易</b>左侧点击交易后，在这里完成复盘。</div></div>`;
   const i=mkInfo(t.market);
-  return `<div class="detail-card" style="--mc:${i.color}"><div class="detail-hero"><div class="detail-title"><span class="mk">${esc(i.name)}</span><span class="side">${t.side==="long"?"做多":"做空"}${t.qty&&t.qty!==1?" "+t.qty:""}</span><span class="when">${md(t.openTime)} ${timezoneBadge(t)}</span></div><div class="detail-pnl ${cls(t.pnl)}">${fmtPnl(t.pnl)}</div><div class="detail-price">${fmtP(t.openPrice,i.dp)} → ${fmtP(t.closePrice,i.dp)}</div><div class="detail-meta"><span class="detail-label">平仓</span>${md(t.closeTime)} ${timezoneBadge(t)}　·　<span class="detail-label">持仓</span>${hold(t.openTime,t.closeTime)}</div></div>${simpleEditorHtml(t)}</div>`;
+  return `<div class="detail-card" style="--mc:${i.color}"><div class="detail-hero"><div class="detail-title"><span class="mk">${esc(i.name)}</span><span class="side">${t.side==="long"?"做多":"做空"}${t.qty&&t.qty!==1?" "+t.qty:""}</span><span class="when">${md(t.openTime)} ${timezoneBadge(t)}</span></div><div class="detail-pnl ${cls(t.pnl)}">${fmtPnl(t.pnl)}</div><div class="detail-price">${fmtP(t.openPrice,i.dp)} → ${fmtP(t.closePrice,i.dp)}</div><div class="detail-meta"><span class="detail-label">平仓</span>${md(t.closeTime)} ${timezoneBadge(t)}　·　<span class="detail-label">持仓</span>${hold(t.openTime,t.closeTime)}</div></div>${editorHtml(t,true)}</div>`;
 }
 function renderList(){
   let list=filtered();if(S.onlyTodo)list=list.filter(t=>reviewState(t)!=="complete"||t.id===S.openId);
@@ -868,65 +859,17 @@ function patchRow(id){
 }
 
 /* ---------- editor ---------- */
-function editorHtml(t){
+function editorHtml(t,compact=false){
   const n=S.drafts[t.id]||noteOf(t);
-  const all=allTags();
-  const chip=(g,k)=>`<button type="button" class="${k}" data-tag="${esc(g)}" aria-pressed="${n.tags.includes(g)}">${esc(g)}</button>`;
-  return `<div class="ed" data-ed="${esc(t.id)}">
-  <div><h4>这笔交易的问题（可多选）</h4><div class="chips">${BAD_TAGS.map(g=>chip(g,"bad")).join("")}${all.custom.map(g=>chip(g,"cus")).join("")}${GOOD_TAGS.map(g=>chip(g,"good")).join("")}<button type="button" class="add" data-addtag>＋ 自定义</button></div></div>
-  <div class="review-part">
-    <h4>① 原计划（尽可能填写开仓前设定的价格）</h4>
-    <div class="two"><label class="field">初始止盈价<input type="number" step="any" inputmode="decimal" data-f="tp" value="${n.tp??""}"></label><label class="field">初始止损价<input type="number" step="any" inputmode="decimal" data-f="sl" value="${n.sl??""}"></label></div>
-    <label class="field" style="margin-top:8px">初始计划风险金额（1R，以券商盈亏的同一货币计）<input type="number" min="0.01" step="any" inputmode="decimal" data-f="riskAmount" placeholder="例如 50；历史不确定就留空" value="${n.riskAmount??""}"></label>
-    <p class="note" style="margin:5px 0 0">这是开仓前计划最多承担的风险，不是实际亏损；请勿根据最终盈亏倒填。</p>
-  </div>
-  <div class="review-part">
-    <h4>② 纪律执行（独立于这笔是否盈利）</h4>
-    <div class="chips execution-chips">${[["follow","按计划执行"],["violate","偏离原计划"],["unknown","暂不确定"]].map(([k,label])=>`<button type="button" class="cus" data-exec="${k}" aria-pressed="${(n.execution||"")===k}">${label}</button>`).join("")}</div>
-    <p class="note" style="margin:6px 0 0">纪律评价由你主动确认；标签、胜率和盈亏不会自动决定评价。</p>
-  </div>
-  <div class="review-part">
-    <h4>③ 原计划与实际结果</h4>
-    <div class="calc" data-calc></div>
-    <div data-afterbox><h4 style="margin-top:10px">提前离场后，核对原止盈 / 原止损哪个先触发</h4><div class="chips">${Object.entries(AFTER).map(([k,v])=>`<button type="button" class="cus" data-after="${k}" aria-pressed="${n.after===k}">${v}</button>`).join("")}</div>
-    <label class="verified-line"><input type="checkbox" data-check="afterVerified" ${n.afterVerified===true?"checked":""}> 已查历史走势，确认以上先后顺序（仅适用于先止盈/先止损）</label>
-    <p class="note" style="margin:5px 0 0">未核对则仅展示价位差，不会把“少拿利润”当成实际机会成本。核对也仅为手工复盘，不代表交易已自动回测。</p></div>
-  </div>
-  <label class="field">复盘记录<textarea data-f="text" rows="6" placeholder="记录交易经过、自己的想法，以及下次的改进做法">${esc(n.text)}</textarea></label>
-  <div class="edfoot"><span data-st>改动会自动保存</span><button type="button" class="btn ghost" data-del>删除这笔交易</button></div></div>`;
-}
-
-/* Desktop presentation only; shared editor bindings and data remain unchanged. */
-function simpleEditorHtml(t){
-  const n=S.drafts[t.id]||noteOf(t);
-  const all=allTags();
-  const chip=(g,k)=>`<button type="button" class="${k}" data-tag="${esc(g)}" aria-pressed="${n.tags.includes(g)}">${esc(g)}</button>`;
-  return `<div class="ed simple-review" data-ed="${esc(t.id)}">
+  return `<div class="ed${compact?" simple-review":""}" data-ed="${esc(t.id)}">
   <div class="review-part">
     <h4>这笔有没有按计划执行？</h4>
-    <div class="chips execution-chips">${[["follow","按计划执行"],["violate","偏离原计划"],["unknown","暂不确定"]].map(([k,label])=>`<button type="button" class="cus" data-exec="${k}" aria-pressed="${(n.execution||"")===k}">${label}</button>`).join("")}</div>
-    <p class="note" style="margin:6px 0 0">只看是否遵守计划，不看赚赔。</p>
+    <div class="chips execution-chips">${[["follow","按计划执行"],["violate","有偏离"],["unknown","暂不确定"]].map(([k,label])=>`<button type="button" class="cus" data-exec="${k}" aria-pressed="${(n.execution||"")===k}">${label}</button>`).join("")}</div>
+    <p class="note" style="margin:6px 0 0">只看执行，不看赚赔。</p>
   </div>
   <label class="field">复盘记录<textarea data-f="text" rows="6" placeholder="记录交易经过、自己的想法，以及下次的改进做法">${esc(n.text)}</textarea></label>
-  <details class="review-fold"><summary>交易标签</summary><div class="fold-body">  <div><p class="note">可多选，也可以添加自己的标签。</p><div class="chips">${BAD_TAGS.map(g=>chip(g,"bad")).join("")}${all.custom.map(g=>chip(g,"cus")).join("")}${GOOD_TAGS.map(g=>chip(g,"good")).join("")}<button type="button" class="add" data-addtag>＋ 自定义</button></div></div>
-</div></details>
-  <details class="review-fold"><summary>原计划与结果对照</summary><div class="fold-body">  <div class="review-part">
-    <h4>开仓前的计划</h4>
-    <div class="two"><label class="field">初始止盈价<input type="number" step="any" inputmode="decimal" data-f="tp" value="${n.tp??""}"></label><label class="field">初始止损价<input type="number" step="any" inputmode="decimal" data-f="sl" value="${n.sl??""}"></label></div>
-    <label class="field" style="margin-top:8px">初始计划风险金额（1R，以券商盈亏的同一货币计）<input type="number" min="0.01" step="any" inputmode="decimal" data-f="riskAmount" placeholder="例如 50；历史不确定就留空" value="${n.riskAmount??""}"></label>
-    <p class="note" style="margin:5px 0 0">这是开仓前计划最多承担的风险，不是实际亏损；请勿根据最终盈亏倒填。</p>
-  </div>
-  <div class="review-part">
-    <h4>结果对照</h4>
-    <div class="calc" data-calc></div>
-    <div data-afterbox><h4 style="margin-top:10px">提前离场后，核对原止盈 / 原止损哪个先触发</h4><div class="chips">${Object.entries(AFTER).map(([k,v])=>`<button type="button" class="cus" data-after="${k}" aria-pressed="${n.after===k}">${v}</button>`).join("")}</div>
-    <label class="verified-line"><input type="checkbox" data-check="afterVerified" ${n.afterVerified===true?"checked":""}> 已查历史走势，确认以上先后顺序（仅适用于先止盈/先止损）</label>
-    <p class="note" style="margin:5px 0 0">未核对则仅展示价位差，不会把“少拿利润”当成实际机会成本。核对也仅为手工复盘，不代表交易已自动回测。</p></div>
-  </div>
-</div></details>
   <div class="edfoot"><span data-st>改动会自动保存</span><button type="button" class="btn ghost" data-del>删除这笔交易</button></div></div>`;
 }
-function allTags(){const s=new Set();S.trades.forEach(t=>(t.note?.tags||[]).forEach(g=>s.add(g)));return {custom:[...s].filter(g=>!BAD_TAGS.includes(g)&&!GOOD_TAGS.includes(g))}}
 
 const timers={};
 function bindEditor(id){
@@ -934,52 +877,20 @@ function bindEditor(id){
   const t={id,...S.trades.get(id)};
   const draft=()=>S.drafts[id]||(S.drafts[id]=JSON.parse(JSON.stringify(noteOf(t))));
   const st=ed.querySelector("[data-st]");
-  const updCalc=()=>{
-    const c=ed.querySelector("[data-calc]"),n=draft(),p=planned(t,n),dp=mkInfo(t.market).dp;
-    const fmtN=v=>fmtPnl(Math.round(v*100)/100);
-    const rows=[`<div><b>实际已实现盈亏：</b><b class="num ${cls(t.pnl)}">${fmtN(t.pnl)}</b>${p.actualR!=null?`（${p.actualR>=0?"+":""}${p.actualR.toFixed(2)}R）`:"（未填风险金额，R 待算）"}</div>`];
-    if(p.tp!=null&&p.targetDist!=null){
-      if(p.targetDist>0){const achieved=pts(t),ratio=Math.round(achieved/p.targetDist*100);
-        rows.push(`<div>距原定止盈价的点数差：<b>${fmtP(p.targetDist-achieved,dp)} 点</b>（当前盈亏点数约为目标的 ${ratio}%）</div>`);
-      }else rows.push(`<div class="down">初始止盈价格方向不正确，请核对。</div>`);
-    }
-    if((p.tp!=null||p.sl!=null)&&!p.validPrices)rows.push(`<div class="down">请填入有效的初始止盈、初始止损（多单止损低于入场、止盈高于入场；空单相反）。</div>`);
-    if(p.validPrices){rows.push(`<div>计划盈亏比：<b>1 : ${p.ratio.toFixed(2)}</b>${p.amountOK?`　原计划止盈约 <b>${fmtN(p.risk*p.ratio)}</b>、止损约 <b>${fmtN(-p.risk)}</b>`:"　（填写初始风险金额后可估算金额）"}</div>`)}
-    if(p.status==="confirmed_by_user"){
-      rows.push(`<div class="plan-result"><div>你已手工核对：原计划先触发${n.after==="tp"?"止盈":"止损"}。理论结果 <b class="num ${cls(p.hypothetical)}">${fmtN(p.hypothetical)}</b></div><div>实际 − 原计划：<b class="num ${cls(p.delta)}">${fmtN(p.delta)}</b></div><small>对比假设原计划委托持续有效、按设定价格成交，不包含额外滑点、费用、保证金变化，也不能据此证明某种退出方式长期优越。</small></div>`);
-    }else rows.push(`<div class="note">原计划结果：<b>待核对</b>。请填写完整计划并核实平仓后先触发哪个价位，才会显示理论对照。</div>`);
-    if(n.after&&n.afterVerified!==true)rows.push(`<div class="note">已记录“${esc(AFTER[n.after]||n.after)}”，但尚未勾选核对，不能据此计算原计划结果。</div>`);
-    c.innerHTML=rows.join("");
-  };
-  updCalc();
   const save=(delay)=>{clearTimeout(timers[id]);st.textContent="正在保存…";
     timers[id]=setTimeout(async()=>{const n=draft();try{await putNote(id,{...n,tags:[...n.tags]});st.textContent="已保存"}catch(e){st.textContent="保存失败，再改一下会重试"}},delay)};
   ed.addEventListener("click",async e=>{
     const b=e.target.closest("button");if(!b)return;
     const n=draft();
-    if(b.dataset.tag!=null){const g=b.dataset.tag;n.tags=n.tags.includes(g)?n.tags.filter(x=>x!==g):[...n.tags,g];b.setAttribute("aria-pressed",n.tags.includes(g));
-      updCalc();save(300)}
-    else if(b.dataset.after){n.after=n.after===b.dataset.after?"":b.dataset.after; n.afterVerified=false;
-      ed.querySelector('[data-check="afterVerified"]').checked=!!n.afterVerified;
-      ed.querySelectorAll("[data-after]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.after===n.after));updCalc();save(300)}
-    else if(b.dataset.exec){n.execution=n.execution===b.dataset.exec?"":b.dataset.exec;
+    if(b.dataset.exec){n.execution=n.execution===b.dataset.exec?"":b.dataset.exec;
       ed.querySelectorAll("[data-exec]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.exec===n.execution));save(300)}
-    else if(b.hasAttribute("data-addtag")){const g=(prompt("新标签名称（比如：数据公布前开仓）")||"").trim().slice(0,20);if(!g)return;if(!n.tags.includes(g))n.tags.push(g);await flush(id);renderList()}
     else if(b.hasAttribute("data-del")){if(!confirm("删除这笔交易和它的备注？删除后无法恢复。"))return;delete S.drafts[id];S.openId=null;try{await delTrade(id);toast("已删除")}catch(e){toast("删除失败，请重试")}}
   });
-  ed.addEventListener("change",e=>{if(e.target.dataset.check!=="afterVerified")return;const n=draft();
-    if(e.target.checked&&n.after!=="tp"&&n.after!=="sl"){
-      e.target.checked=false;toast("请先选择后续先触发止盈或止损");return;
-    }
-    n.afterVerified=e.target.checked;updCalc();save(300);
+  ed.addEventListener("input",e=>{
+    if(e.target.dataset.f!=="text")return;
+    draft().text=e.target.value;
+    save(900);
   });
-  ed.addEventListener("input",e=>{const f=e.target.dataset.f;if(!f)return;const n=draft();
-    if(["tp","sl","riskAmount"].includes(f)){
-      n[f]=e.target.value===""?null:+e.target.value;
-      // Invalidate prior path confirmation if the original plan prices are changed.
-      if(f==="tp"||f==="sl"){n.afterVerified=false;ed.querySelector('[data-check="afterVerified"]').checked=false;}
-      updCalc();
-    }else n[f]=e.target.value;save(900)});
 }
 async function flush(id){
   if(!id||!S.drafts[id])return;clearTimeout(timers[id]);
@@ -990,11 +901,10 @@ async function flush(id){
 /* ---------- library ---------- */
 function renderLib(){
   const list=filtered(),stats=tagStats(list),box=$("#lib");
-  if(!stats.length){box.innerHTML=`<div class="emptybox">错误库是空的。去「交易记录」里点开交易打标签，每个标签会在这里汇总成一张卡：犯了几次、花了多少钱、你给自己定的规则。</div>`;return}
+  if(!stats.length){box.innerHTML=`<div class="emptybox">暂无历史错误分类。新复盘请写在「交易记录」里。</div>`;return}
   box.innerHTML=stats.map(s=>{
     const good=GOOD_TAGS.includes(s.tag);
     let meta=`合计 <span class="num ${cls(s.pnl)}">${fmtPnl(s.pnl)}</span>，胜率 ${Math.round(s.trades.filter(t=>t.pnl>0).length/s.trades.length*100)}%`;
-    if(s.tag===EARLY_TP&&s.verified)meta+=`，已核对 ${s.verified} 笔（先止盈 ${s.toTp}、先止损 ${s.toSl}）`;
     const items=[...s.trades].sort((a,b)=>b.closeTime<a.closeTime?-1:1).map(t=>{const n=noteOf(t);
       return `<li>${n.lesson.trim()?`<div class="rule">${esc(n.lesson)}</div>`:""}${n.text.trim()?`<div>${esc(n.text)}</div>`:""}<button data-jump="${esc(t.id)}">${md(t.openTime)} ${timezoneBadge(t)} ${esc(mkInfo(t.market).name)} ${t.side==="long"?"做多":"做空"} <span class="num">${fmtPnl(t.pnl)}</span></button></li>`}).join("");
     return `<div class="lcard"><div class="h"><span class="name" style="color:${good?"var(--up)":"inherit"}">${esc(s.tag)}</span><span class="cnt">${s.trades.length}<small style="font-size:13px;color:var(--muted);font-family:var(--cjk)"> 次</small></span></div><div class="meta">${meta}</div><ul>${items}</ul></div>`;

@@ -1,0 +1,1282 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>复盘本 V3 · 纪律与计划复盘</title>
+<style>
+:root{
+  --bg:#E8EBEE;--surface:#F7F8F9;--ink:#18202B;--muted:#65707C;--line:#D3D8DE;--chip:#DFE3E8;
+  --gold:#94700F;--a50:#2E5B88;--other:#6B5B95;--up:#1B774B;--down:#B3372E;--focus:#2E5B88;
+  --num:"DIN Alternate","Roboto Condensed","Arial Narrow","Segoe UI",system-ui,sans-serif;
+  --cjk:"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11151A;--surface:#192027;--ink:#E4E8EC;--muted:#8B95A1;--line:#29313B;--chip:#232B34;
+  --gold:#D4AC47;--a50:#72A3D8;--other:#A898D0;--up:#4BB783;--down:#E46A5F;--focus:#72A3D8;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11151A;--surface:#192027;--ink:#E4E8EC;--muted:#8B95A1;--line:#29313B;--chip:#232B34;
+  --gold:#D4AC47;--a50:#72A3D8;--other:#A898D0;--up:#4BB783;--down:#E46A5F;--focus:#72A3D8;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100vh;background:
+  radial-gradient(circle at 12% -10%,color-mix(in srgb,var(--a50) 10%,transparent),transparent 34%),
+  radial-gradient(circle at 92% 0%,color-mix(in srgb,var(--gold) 8%,transparent),transparent 32%),
+  var(--bg);color:var(--ink);font:15px/1.6 var(--cjk);-webkit-text-size-adjust:100%}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.up{color:var(--up)}.down{color:var(--down)}
+.wrap{width:min(1240px,calc(100% - 40px));margin:0 auto;padding:22px 0 72px}
+
+header.top{display:flex;align-items:center;gap:9px;margin:0 0 14px;padding:13px 14px;background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 30px rgba(17,24,39,.05)}
+header.top h1{font-size:23px;margin:0;flex:1;letter-spacing:.04em}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 13px;font-size:14px;transition:transform .12s ease,border-color .12s ease,background .12s ease}
+.btn:hover{border-color:color-mix(in srgb,var(--focus) 45%,var(--line));transform:translateY(-1px)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+
+.toolbar{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.75fr);gap:12px;align-items:stretch}
+.seg{display:flex;background:var(--chip);border-radius:11px;padding:3px;gap:2px;min-width:0}
+.seg button{flex:1;border:0;background:none;border-radius:8px;padding:8px 7px;font-size:14px;color:var(--muted);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.09)}
+.seg button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.row2{display:flex;gap:10px;margin:0;align-items:stretch}
+.row2 .seg{flex:1}
+
+.overview{display:grid;grid-template-columns:minmax(300px,.72fr) minmax(0,1.7fr);gap:14px;margin-top:14px;align-items:stretch}
+#memory,#stats{min-width:0}
+/* memory card: the one loud element */
+.memory{margin:0;height:100%;min-height:226px;background:var(--ink);color:var(--bg);border-radius:16px;padding:19px 20px 20px;position:relative;overflow:hidden;box-shadow:0 10px 32px rgba(17,24,39,.10)}
+.memory::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-70px;top:-80px;background:radial-gradient(circle,color-mix(in srgb,var(--a50) 28%,transparent),transparent 68%);pointer-events:none}
+.memory .k{font-size:13px;opacity:.7;letter-spacing:.03em}
+.memory .tag{font-size:28px;font-weight:700;line-height:1.25;margin:4px 0 8px;position:relative;z-index:1}
+.memory .facts{font-size:14px;opacity:.86;position:relative;z-index:1}
+.memory .facts b{font-family:var(--num);font-size:18px;font-weight:600}
+.memory blockquote{margin:14px 0 0;padding:12px 0 0;border-top:1px solid color-mix(in srgb,var(--bg) 25%,transparent);font-size:15px;line-height:1.55;position:relative;z-index:1}
+.memory blockquote small{display:block;opacity:.6;font-size:12px;margin-top:4px}
+.memory.empty .tag{font-size:19px}
+
+#stats{display:flex;flex-direction:column;gap:10px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;background:none;border:0;border-radius:0;overflow:visible;margin:0}
+.stats>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 13px;min-height:72px;box-shadow:0 5px 18px rgba(17,24,39,.035)}
+.stats .l{font-size:12px;color:var(--muted);margin-bottom:2px}
+.stats .v{font-family:var(--num);font-size:23px;font-weight:650;line-height:1.2;font-variant-numeric:tabular-nums}
+.curve{position:relative;flex:1;min-height:144px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 14px 12px;overflow:hidden;box-shadow:0 5px 18px rgba(17,24,39,.035)}
+.curve-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:5px}
+.curve-titlebox{display:flex;align-items:baseline;gap:10px;min-width:0}
+.curve-title{font-size:13px;font-weight:650;color:var(--ink)}
+.curve-hint{font-size:11px;color:var(--muted);white-space:nowrap}
+.curve-controls{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.curve-range{min-width:74px;text-align:center;font:12px var(--num);color:var(--muted);font-variant-numeric:tabular-nums}
+.curve-zoom{width:28px;height:26px;padding:0;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);font:600 17px/1 var(--num);display:grid;place-items:center}
+.curve-zoom:hover{background:var(--chip)}
+.curve-zoom:disabled{opacity:.35;cursor:default}
+.curve-reset{height:26px;padding:0 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--muted);font-size:11px}
+.curve-reset:hover{background:var(--chip);color:var(--ink)}
+.curve-plot{position:relative;height:112px;touch-action:pan-y;cursor:crosshair;user-select:none}
+.curve-plot.zoomed{cursor:grab}
+.curve-plot.dragging{cursor:grabbing}
+.curve svg{display:block;width:100%;height:100%;overflow:visible}
+.curve-point{fill:var(--surface);stroke:currentColor;stroke-width:1.7;opacity:.58;vector-effect:non-scaling-stroke}
+.curve-hover-line{opacity:0;stroke:var(--muted);stroke-width:1;stroke-dasharray:3 4;vector-effect:non-scaling-stroke}
+.curve-hover-dot{opacity:0;fill:var(--surface);stroke:var(--ink);stroke-width:2.3;vector-effect:non-scaling-stroke}
+.curve-plot.active .curve-hover-line,.curve-plot.active .curve-hover-dot{opacity:1}
+.curve-tooltip{position:absolute;z-index:5;top:0;left:0;min-width:150px;max-width:220px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:color-mix(in srgb,var(--surface) 96%,transparent);color:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.13);font-size:12px;line-height:1.45;pointer-events:none;opacity:0;transform:translate(10px,-46%);transition:opacity .08s ease;backdrop-filter:blur(8px)}
+.curve-tooltip.show{opacity:1}
+.curve-tooltip.flip{transform:translate(calc(-100% - 10px),-46%)}
+.curve-tooltip .ct-main{font-family:var(--num);font-size:17px;font-weight:700;margin-bottom:2px}
+.curve-tooltip .ct-sub{color:var(--muted)}
+.curve-tooltip .ct-delta{margin-top:3px}
+.stats.withcurve{border-radius:0}
+
+.listbar{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px;padding:0 2px}
+.listbar label{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.trade-workspace{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(340px,.78fr);gap:14px;align-items:start}
+.trade-list-pane{min-width:0}
+.trade-detail-pane{position:sticky;top:14px;align-self:start;max-height:calc(100vh - 28px);overflow:auto;overscroll-behavior:contain;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(17,24,39,.055)}
+.detail-empty{min-height:300px;display:grid;place-items:center;padding:28px;text-align:center;color:var(--muted)}
+.detail-empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:5px}
+.detail-hero{padding:15px 16px 14px;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.detail-hero::after{content:"";position:absolute;width:150px;height:150px;right:-62px;top:-74px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--mc) 20%,transparent),transparent 70%);pointer-events:none}
+.detail-title{display:flex;align-items:center;gap:7px;padding-right:90px}
+.detail-title .mk{font-size:17px}
+.detail-title .when{font-size:12px;color:var(--muted)}
+.detail-pnl{position:absolute;right:16px;top:13px;font:700 27px/1.1 var(--num);font-variant-numeric:tabular-nums}
+.detail-price{font:600 21px/1.3 var(--num);margin-top:10px;position:relative;z-index:1}
+.detail-meta{font-size:12px;color:var(--muted);margin-top:4px;position:relative;z-index:1}
+.detail-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:5px}
+.month{font-size:13px;color:var(--muted);margin:16px 2px 7px;display:flex;justify-content:space-between;align-items:center}
+.list{display:flex;flex-direction:column;gap:6px}
+.trade{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--mc);border-radius:10px;box-shadow:0 3px 14px rgba(17,24,39,.025);transition:border-color .12s ease,background .12s ease,transform .12s ease}
+.trade:hover{border-color:color-mix(in srgb,var(--mc) 34%,var(--line));transform:translateY(-1px)}
+.trade.selected{background:color-mix(in srgb,var(--mc) 5%,var(--surface));border-color:color-mix(in srgb,var(--mc) 48%,var(--line));box-shadow:0 5px 18px color-mix(in srgb,var(--mc) 8%,transparent)}
+.trade>.sum{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 16px;width:100%;text-align:left;background:none;border:0;padding:10px 12px}
+.trade .l1{display:flex;align-items:center;gap:8px;font-size:14px}
+.mk{font-weight:700;color:var(--mc)}
+.side{font-size:12px;padding:0 6px;border-radius:4px;background:var(--chip)}
+.trade .when{color:var(--muted);font-size:13px}
+.trade .pnl{grid-row:1/3;grid-column:2;align-self:center;font-family:var(--num);font-size:21px;font-weight:650;font-variant-numeric:tabular-nums}
+.trade .l2{font-size:13px;color:var(--muted)}
+.trade .l2 .hd{white-space:nowrap}
+.trade .l2 .num{color:var(--ink);font-size:14px}
+.trade .tags{grid-column:1/3;display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tg{font-size:12px;padding:1px 7px;border-radius:10px;background:var(--chip)}
+.tg.bad{background:color-mix(in srgb,var(--down) 14%,var(--surface));color:var(--down)}
+.tg.good{background:color-mix(in srgb,var(--up) 14%,var(--surface));color:var(--up)}
+.trade .snip{grid-column:1/3;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pending{grid-column:1/3;font-size:12px;color:var(--muted)}
+.compact-main{min-width:0}
+.compact-top{display:flex;align-items:center;gap:7px;min-width:0}
+.compact-top .when{margin-left:auto;white-space:nowrap}
+.compact-bottom{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;margin-top:3px;min-width:0}
+.compact-bottom .num{color:var(--ink);font-size:14px}
+.compact-bottom .hd{white-space:nowrap}
+.compact-tag{margin-left:auto;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compact-tag.pending{grid-column:auto;font-size:11px}
+
+.ed{border-top:1px dashed var(--line);padding:12px 12px 14px;display:flex;flex-direction:column;gap:12px}
+.ed h4{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--bg);border-radius:16px;padding:4px 11px;font-size:13px}
+.chips button[aria-pressed="true"].bad{background:var(--down);border-color:var(--down);color:#fff}
+.chips button[aria-pressed="true"].good{background:var(--up);border-color:var(--up);color:#fff}
+.chips button[aria-pressed="true"].cus{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chips .add{border-style:dashed;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.field input,.field textarea,.field select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:15px;color:var(--ink);width:100%}
+.field textarea{min-height:76px;resize:vertical;line-height:1.55}
+.calc{font-size:13px;background:var(--bg);border-radius:8px;padding:8px 10px;line-height:1.7}
+.edfoot{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.hidden{display:none!important}
+
+/* library */
+.lib{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.lcard .h{display:flex;align-items:baseline;gap:10px}
+.lcard .h .name{font-size:18px;font-weight:700;flex:1}
+.lcard .h .cnt{font-family:var(--num);font-size:24px;font-weight:600}
+.lcard .meta{font-size:13px;color:var(--muted);margin:2px 0 8px}
+.lcard ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.lcard li{font-size:14px;border-left:2px solid var(--line);padding:2px 0 2px 10px}
+.lcard li button{background:none;border:0;padding:0;color:var(--muted);font-size:12px;text-decoration:underline;text-underline-offset:2px}
+.lcard li .rule{font-weight:600}
+.emptybox{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:22px 18px;text-align:center;color:var(--muted);font-size:14px}
+
+/* dialog */
+dialog{border:0;border-radius:14px;padding:0;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 40px);background:var(--surface);color:var(--ink)}
+dialog::backdrop{background:rgba(10,14,20,.5)}
+.dh{display:flex;align-items:center;padding:14px 16px 0}
+.dh h3{margin:0;flex:1;font-size:17px}
+.db{padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:20px;text-align:center;font-size:14px;color:var(--muted)}
+.drop input{display:block;margin:10px auto 0;max-width:100%}
+.prev{max-height:40dvh;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.prev table{width:100%;border-collapse:collapse;font-size:13px}
+.prev td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.prev tr.old td{color:var(--muted)}
+.note{font-size:13px;color:var(--muted)}
+.err{font-size:13px;color:var(--down)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+@media (max-width:900px){
+  .wrap{width:min(760px,calc(100% - 28px));padding-top:14px}
+  .toolbar,.overview{grid-template-columns:1fr}
+  .memory{min-height:0}
+  .curve-plot{height:120px}
+}
+@media (min-width:900px){
+  #vList .listbar{margin-top:20px}
+  .trade-list-pane .month{position:sticky;top:0;z-index:3;margin:0 0 7px;padding:9px 4px 6px;background:linear-gradient(var(--bg) 78%,transparent)}
+  .trade-list-pane .month:not(:first-child){margin-top:10px}
+  .trade-detail-pane .ed{border-top:0;padding:14px 16px 16px}
+  .trade-detail-pane .field textarea{min-height:90px}
+}
+@media (max-width:899px){
+  .trade-workspace{display:block}
+  .trade-detail-pane{display:none}
+  .trade:hover{transform:none}
+}
+@media (max-width:620px){
+  .wrap{width:calc(100% - 24px);padding-top:12px}
+  header.top{flex-wrap:wrap;padding:11px}
+  header.top h1{flex:1 0 100%;font-size:21px}
+  header.top .btn{flex:1;padding:8px 6px;font-size:13px}
+  .toolbar{gap:8px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats .v{font-size:20px}
+  .curve{min-height:150px;padding-inline:10px}
+  .curve-head{align-items:center}
+  .curve-hint{display:none}
+  .trade>.sum{padding:10px}
+}
+@media (max-width:420px){.stats .v{font-size:18px}.stats>div{padding:9px}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+
+
+/* startup loading overlay */
+.bootload{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--bg);color:var(--ink);transition:opacity .24s ease,visibility .24s ease}
+.bootload.done{opacity:0;visibility:hidden;pointer-events:none}
+.bootbox{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:220px;padding:24px 28px;text-align:center}
+.bootmark{position:relative;width:58px;height:58px}
+.bootmark::before,.bootmark::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
+.bootmark::before{border-top-color:var(--a50);border-right-color:color-mix(in srgb,var(--a50) 35%,transparent);animation:bootspin 1s linear infinite}
+.bootmark::after{inset:9px;border-bottom-color:var(--gold);border-left-color:color-mix(in srgb,var(--gold) 35%,transparent);animation:bootspin .72s linear infinite reverse}
+.bootdot{position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:50%;background:var(--ink);transform:translate(-50%,-50%);box-shadow:0 0 0 5px color-mix(in srgb,var(--ink) 9%,transparent)}
+.bootname{font-size:20px;font-weight:700;letter-spacing:.08em}
+.bootstatus{font-size:13px;color:var(--muted);min-height:21px}
+.bootdots::after{content:"";display:inline-block;width:1.5em;text-align:left;animation:bootdots 1.2s steps(4,end) infinite}
+@keyframes bootspin{to{transform:rotate(360deg)}}
+@keyframes bootdots{0%{content:""}25%{content:"."}50%{content:".."}75%,100%{content:"..."}}
+@media (prefers-reduced-motion:reduce){.bootload{transition:none}.bootmark::before,.bootmark::after{animation:none}.bootdots::after{animation:none;content:"…"}}
+
+
+/* V3: evidence-based plan review */
+.quality-strip{display:flex;flex-wrap:wrap;gap:6px 14px;padding:9px 12px;background:var(--surface);border:1px solid var(--line);border-radius:11px;font-size:12px;color:var(--muted)}
+.quality-strip b{font-family:var(--num);font-size:14px;color:var(--ink);margin-left:3px}
+.quality-strip small{font-size:11px}
+.review-pill{font-size:11px;margin-top:4px;color:var(--muted)}
+.review-pill.complete{color:var(--up)}
+.review-pill.partial{color:var(--gold)}
+.review-part{border:1px solid var(--line);border-radius:10px;padding:10px;background:color-mix(in srgb,var(--bg) 60%,var(--surface))}
+.review-part h4{margin:0 0 8px;font-size:13px;font-weight:650;color:var(--ink)}
+.review-part .field input{min-width:0}
+.review-part .calc{margin:7px 0 0;line-height:1.8;background:var(--surface);border:1px solid var(--line)}
+.verified-line{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--ink);margin-top:12px;cursor:pointer}
+.verified-line input{accent-color:var(--a50);margin-top:3px;flex:0 0 auto}
+.plan-result{margin-top:8px;padding:9px 11px;border-left:3px solid var(--a50);background:color-mix(in srgb,var(--a50) 8%,var(--surface));border-radius:4px}
+.plan-result small{display:block;font-size:11px;color:var(--muted);margin-top:5px}
+.execution-chips [aria-pressed="true"]{background:var(--a50)!important;border-color:var(--a50)!important;color:#fff!important}
+@media(max-width:620px){.quality-strip{display:grid;grid-template-columns:1fr 1fr;gap:7px}.review-part{padding:9px}}
+.tz-badge{display:inline-block;font-size:10px;line-height:1.4;padding:1px 4px;border:1px solid var(--line);border-radius:4px;color:var(--muted);font-weight:400;white-space:nowrap}
+
+/* Simplified right-hand review panel. */
+.trade-detail-pane .simple-review{gap:16px;padding:18px 16px}
+.simple-review .review-part{border:0;border-radius:0;padding:0;background:none}
+.simple-review .review-part h4{color:var(--ink);font-size:14px;font-weight:600;margin-bottom:9px}
+.simple-review .field{gap:6px;color:var(--ink)}
+.trade-detail-pane .simple-review textarea{min-height:70px;font-size:14px}
+.simple-review .chips button{border-radius:6px;padding:6px 9px}
+.simple-review .review-fold{border-top:1px solid var(--line);padding-top:13px}
+.simple-review summary{cursor:pointer;color:var(--muted);font-size:14px;line-height:1.6}
+.simple-review summary:hover,.simple-review details[open]>summary{color:var(--ink)}
+.simple-review summary:focus-visible{outline:2px solid var(--a50);outline-offset:4px}
+.simple-review .fold-body{display:flex;flex-direction:column;gap:18px;padding-top:13px}
+.simple-review .fold-body .note{line-height:1.65}
+.simple-review .edfoot{gap:12px;flex-wrap:wrap}
+.simple-review .edfoot .btn{font-size:12px;padding:4px 0}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1>复盘本</h1>
+    <button class="btn" id="bBindData" title="选择或创建复盘数据.json，之后每次修改都会自动写入">授权数据文件</button>
+    <button class="btn" id="bAdd">手动添加</button>
+    <button class="btn primary" id="bImport">导入记录</button>
+    <button class="btn" id="bExportHTML" title="把当前交易与备注打包成独立 HTML 文件，单文件可查看">下载含数据HTML</button>
+  </header>
+
+  <div class="toolbar">
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+      <div class="seg" id="mkSeg" role="group" aria-label="品种"></div>
+      <div class="seg" id="sideSeg" role="group" aria-label="交易方向">
+        <button data-side="ALL" aria-pressed="true">全部方向</button>
+        <button data-side="long" aria-pressed="false">做多</button>
+        <button data-side="short" aria-pressed="false">做空</button>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="seg" id="viewSeg" role="group" aria-label="视图">
+        <button data-v="list" aria-pressed="true">交易记录</button>
+        <button data-v="lib" aria-pressed="false">错误库</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overview">
+    <section id="memory"></section>
+    <section id="stats"></section>
+  </div>
+
+    <p class="note">时间口径：全部统一为北京时间；排序、月度分组、曲线及持仓时长均按北京时间计算。嘉盛和手工选择洛杉矶的时间自动换算，来源时间留底。</p>
+
+  <section id="vList">
+    <div class="listbar">
+      <label><input type="checkbox" id="onlyTodo"> 只看未完成复盘的</label>
+      <span class="note" id="saveState"></span>
+    </div>
+    <div id="list"></div>
+  </section>
+  <section id="vLib" class="hidden"><div class="lib" id="lib"></div></section>
+
+  <p class="note" style="margin-top:28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <span id="modeNote"></span>
+    <span id="fileState" style="font-weight:600" class="note "></span>
+    <button class="btn ghost hidden" id="bSaveData">立即保存</button>
+    <button class="btn ghost hidden" id="bExport">导出备份</button>
+  <button id="bMarketCheck" class="btn">重新检查历史品种分类</button></p>
+</div>
+
+<dialog id="dImport">
+  <div class="dh"><h3>导入交易记录</h3><button class="btn ghost" data-close="">关闭</button></div>
+  <div class="db">
+    <div class="drop">
+      嘉盛交易历史（xlsx/csv）、MT5 历史报告（xlsx，含持仓/订单/成交），或复盘本备份（json）
+      <input type="file" id="fileIn" accept=".xlsx,.xls,.csv,.json">
+    </div>
+    <div class="note">重复导入没关系：已经在复盘本里的交易会自动跳过，备注不会被覆盖。</div>
+    <div id="impOut"></div>
+  </div>
+</dialog>
+
+<dialog id="dAdd">
+  <div class="dh"><h3>手动添加一笔</h3><button class="btn ghost" data-close="">关闭</button></div>
+  <form class="db" id="addForm" onsubmit="return false">
+    <div class="two">
+      <label class="field">品种<select name="market"><option value="XAU">黄金 XAU/USD</option><option value="A50">A50</option></select></label>
+      <label class="field">方向<select name="side"><option value="long">做多</option><option value="short">做空</option></select></label>
+      <label class="field">时间所属时区<select name="tz"><option value="北京">北京</option><option value="洛杉矶">洛杉矶（保存时转北京）</option></select></label>
+      <label class="field">开仓时间<input type="datetime-local" name="ot" step="1" required=""></label>
+      <label class="field">平仓时间<input type="datetime-local" name="ct" step="1" required=""></label>
+      <label class="field">开仓价<input type="number" step="any" name="op" inputmode="decimal" required=""></label>
+      <label class="field">平仓价<input type="number" step="any" name="cp" inputmode="decimal" required=""></label>
+      <label class="field">手数<input type="number" step="any" name="qty" value="1" inputmode="decimal"></label>
+      <label class="field">盈亏（留空按点差×手数算）<input type="number" step="any" name="pnl" inputmode="decimal"></label>
+    </div>
+    <div class="err" id="addErr"></div>
+    <button class="btn primary" id="addGo" type="button">添加这笔交易</button>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+
+/* Excel 解析库按需加载：平时启动不访问网络，只有真正导入 Excel 时才加载 */
+let xlsxLoadPromise=null;
+function ensureXLSX(){
+  if(window.XLSX)return Promise.resolve(window.XLSX);
+  if(xlsxLoadPromise)return xlsxLoadPromise;
+  xlsxLoadPromise=new Promise((resolve,reject)=>{
+    const sc=document.createElement("script");
+    sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    sc.async=true;
+    sc.onload=()=>window.XLSX?resolve(window.XLSX):reject(new Error("Excel 解析组件加载失败"));
+    sc.onerror=()=>reject(new Error("Excel 解析组件没加载出来，请检查网络后重试"));
+    document.head.appendChild(sc);
+  }).catch(err=>{xlsxLoadPromise=null;throw err});
+  return xlsxLoadPromise;
+}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function bootStage(msg){const e=$("#bootStatus");if(e)e.textContent=msg}
+function bootDone(){const e=$("#bootLoad");if(!e)return;e.classList.add("done");setTimeout(()=>e.remove(),320)}
+
+
+const MK={XAU:{name:"黄金",color:"var(--gold)",dp:2},A50:{name:"A50",color:"var(--a50)",dp:0}};
+const mkInfo=c=>MK[c]||{name:c,color:"var(--other)",dp:2};
+const BAD_TAGS=["提前止盈离场","提前砍仓","移动或撤掉止损","止损过大","不符合入场规则","冲动追单","盯盘过度","仓位过大"];
+const GOOD_TAGS=["按计划执行"];
+const NEUTRAL_TAGS=["保本损"];
+const EARLY_TP="提前止盈离场";
+const AFTER={tp:"后来到了止盈",sl:"后来先到了止损",none:"两边都没到",unk:"没留意"};
+const emptyNote=()=>({tags:[],text:"",lesson:"",tp:null,sl:null,after:"",riskAmount:null,execution:"",afterVerified:false});
+
+const SEED={"A50-20260922083609":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-09-22 23:36:09","closeTime":"2026-09-23 12:35:03","openPrice":14665,"closePrice":14554,"pnl":111,"source":"import","note":{"tags":["提前止盈离场"],"text":"正常盈利176","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-09-22 08:36:09","closeTime":"2026-09-22 21:35:03"},"timeMigration":"la-to-beijing-v1"},"A50-20260921181844":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-09-22 09:18:44","closeTime":"2026-09-22 09:34:17","openPrice":14667,"closePrice":14725,"pnl":-58,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-09-21 18:18:44","closeTime":"2026-09-21 18:34:17"},"timeMigration":"la-to-beijing-v1"},"A50-20260918074553":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-09-18 22:45:53","closeTime":"2026-09-21 09:08:38","openPrice":14452,"closePrice":14509,"pnl":-57,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-09-18 07:45:53","closeTime":"2026-09-20 18:08:38"},"timeMigration":"la-to-beijing-v1"},"XAU-20260908171250":{"market":"XAU","marketName":"XAU/USD","side":"long","qty":1,"openTime":"2026-09-09 08:12:50","closeTime":"2026-09-09 14:13:26","openPrice":4351.93,"closePrice":4401.04,"pnl":49.11,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-09-08 17:12:50","closeTime":"2026-09-08 23:13:26"},"timeMigration":"la-to-beijing-v1"},"XAU-20260901073346":{"market":"XAU","marketName":"XAU/USD","side":"long","qty":1,"openTime":"2026-09-01 22:33:46","closeTime":"2026-09-02 08:02:23","openPrice":4371.1,"closePrice":4322.13,"pnl":-48.97,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-09-01 07:33:46","closeTime":"2026-09-01 17:02:23"},"timeMigration":"la-to-beijing-v1"},"A50-20260901073113":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-09-01 22:31:13","closeTime":"2026-09-02 09:35:18","openPrice":14798,"closePrice":14644,"pnl":154,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-09-01 07:31:13","closeTime":"2026-09-01 18:35:18"},"timeMigration":"la-to-beijing-v1"},"XAU-20260831160730":{"market":"XAU","marketName":"XAU/USD","side":"long","qty":1,"openTime":"2026-09-01 07:07:30","closeTime":"2026-09-01 16:10:01","openPrice":4446.47,"closePrice":4393.58,"pnl":-52.89,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-31 16:07:30","closeTime":"2026-09-01 01:10:01"},"timeMigration":"la-to-beijing-v1"},"XAU-20260830152735":{"market":"XAU","marketName":"XAU/USD","side":"long","qty":1,"openTime":"2026-08-31 06:27:35","closeTime":"2026-08-31 10:35:55","openPrice":4460.17,"closePrice":4408.53,"pnl":-51.64,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-30 15:27:35","closeTime":"2026-08-30 19:35:55"},"timeMigration":"la-to-beijing-v1"},"A50-20260825183101":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-08-26 09:31:01","closeTime":"2026-08-26 09:37:02","openPrice":14668,"closePrice":14703,"pnl":35,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-25 18:31:01","closeTime":"2026-08-25 18:37:02"},"timeMigration":"la-to-beijing-v1"},"A50-20260819180604":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-08-20 09:06:04","closeTime":"2026-08-20 09:30:06","openPrice":14896,"closePrice":14838,"pnl":-58,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-19 18:06:04","closeTime":"2026-08-19 18:30:06"},"timeMigration":"la-to-beijing-v1"},"A50-20260818065939":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-08-18 21:59:39","closeTime":"2026-08-19 09:31:13","openPrice":15135,"closePrice":15000,"pnl":135,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-18 06:59:39","closeTime":"2026-08-18 18:31:13"},"timeMigration":"la-to-beijing-v1"},"A50-20260813003824":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-08-13 15:38:24","closeTime":"2026-08-14 09:37:46","openPrice":15019,"closePrice":15010,"pnl":9,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-13 00:38:24","closeTime":"2026-08-13 18:37:46"},"timeMigration":"la-to-beijing-v1"},"A50-20260812034832":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-08-12 18:48:32","closeTime":"2026-08-13 09:15:12","openPrice":15037,"closePrice":15090,"pnl":-53,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-12 03:48:32","closeTime":"2026-08-12 18:15:12"},"timeMigration":"la-to-beijing-v1"},"A50-20260807080714":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-08-07 23:07:14","closeTime":"2026-08-11 10:17:02","openPrice":15120,"closePrice":15048,"pnl":72,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-07 08:07:14","closeTime":"2026-08-10 19:17:02"},"timeMigration":"la-to-beijing-v1"},"A50-20260806072930":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-08-06 22:29:30","closeTime":"2026-08-07 10:21:16","openPrice":14989,"closePrice":15092,"pnl":-103,"source":"import","note":{"tags":["止损过大"],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-06 07:29:30","closeTime":"2026-08-06 19:21:16"},"timeMigration":"la-to-beijing-v1"},"A50-20260805180052":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-08-06 09:00:52","closeTime":"2026-08-06 09:39:02","openPrice":14901,"closePrice":14882,"pnl":19,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-05 18:00:52","closeTime":"2026-08-05 18:39:02"},"timeMigration":"la-to-beijing-v1"},"XAU-20260804150132":{"market":"XAU","marketName":"XAU/USD","side":"short","qty":1,"openTime":"2026-08-05 06:01:32","closeTime":"2026-08-05 14:36:54","openPrice":4078.48,"closePrice":4178.39,"pnl":-99.91,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-04 15:01:32","closeTime":"2026-08-04 23:36:54"},"timeMigration":"la-to-beijing-v1"},"A50-20260802182321":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-08-03 09:23:21","closeTime":"2026-08-03 09:30:34","openPrice":14820,"closePrice":14782,"pnl":38,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-08-02 18:23:21","closeTime":"2026-08-02 18:30:34"},"timeMigration":"la-to-beijing-v1"},"XAU-20260727154134":{"market":"XAU","marketName":"XAU/USD","side":"short","qty":1,"openTime":"2026-07-28 06:41:34","closeTime":"2026-07-28 19:20:23","openPrice":4074.35,"closePrice":4030.58,"pnl":43.77,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-07-27 15:41:34","closeTime":"2026-07-28 04:20:23"},"timeMigration":"la-to-beijing-v1"},"A50-20260727080257":{"market":"A50","marketName":"China A50 CFD","side":"short","qty":1,"openTime":"2026-07-27 23:02:57","closeTime":"2026-07-28 09:03:54","openPrice":15204,"closePrice":15159,"pnl":45,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-07-27 08:02:57","closeTime":"2026-07-27 18:03:54"},"timeMigration":"la-to-beijing-v1"},"XAU-20260721174642":{"market":"XAU","marketName":"XAU/USD","side":"short","qty":1,"openTime":"2026-07-22 08:46:42","closeTime":"2026-07-24 00:21:53","openPrice":4092.25,"closePrice":4050.02,"pnl":42.23,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-07-21 17:46:42","closeTime":"2026-07-23 09:21:53"},"timeMigration":"la-to-beijing-v1"},"XAU-20260703082408":{"market":"XAU","marketName":"XAU/USD","side":"short","qty":1,"openTime":"2026-07-03 23:24:08","closeTime":"2026-07-08 08:33:22","openPrice":4169.43,"closePrice":4107.9,"pnl":61.53,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-07-03 08:24:08","closeTime":"2026-07-07 17:33:22"},"timeMigration":"la-to-beijing-v1"},"XAU-20260701165809":{"market":"XAU","marketName":"XAU/USD","side":"short","qty":1,"openTime":"2026-07-02 07:58:09","closeTime":"2026-07-02 08:25:16","openPrice":4035.71,"closePrice":4047.43,"pnl":-11.72,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-07-01 16:58:09","closeTime":"2026-07-01 17:25:16"},"timeMigration":"la-to-beijing-v1"},"XAU-20260629165040":{"market":"XAU","marketName":"XAU/USD","side":"long","qty":1,"openTime":"2026-06-30 07:50:40","closeTime":"2026-06-30 09:06:39","openPrice":4018.11,"closePrice":3967.36,"pnl":-50.75,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-06-29 16:50:40","closeTime":"2026-06-29 18:06:39"},"timeMigration":"la-to-beijing-v1"},"XAU-20260625234408":{"market":"XAU","marketName":"XAU/USD","side":"long","qty":1,"openTime":"2026-06-26 14:44:08","closeTime":"2026-06-29 22:03:16","openPrice":4023.3,"closePrice":4026.88,"pnl":3.58,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-06-25 23:44:08","closeTime":"2026-06-29 07:03:16"},"timeMigration":"la-to-beijing-v1"},"A50-20260928183121":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-09-29 09:31:21","closeTime":"2026-09-30 09:52:11","openPrice":14028,"closePrice":14037,"pnl":9,"source":"import","note":{"tags":["移动或撤掉止损"],"text":"","lesson":"","tp":null,"sl":null,"after":""},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-09-28 18:31:21","closeTime":"2026-09-29 18:52:11"},"timeMigration":"la-to-beijing-v1"},"A50-20261006184822":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-10-07 09:48:22","closeTime":"2026-10-08 09:38:13","openPrice":13937,"closePrice":13999,"pnl":62,"source":"import","note":{"tags":["移动或撤掉止损"],"text":"没按照规则做，主观交易","lesson":"","tp":null,"sl":null,"after":"tp","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-06 18:48:22","closeTime":"2026-10-07 18:38:13"},"timeMigration":"la-to-beijing-v1"},"A50-20261011180430":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-10-12 09:04:30","closeTime":"2026-10-12 09:24:16","openPrice":13925,"closePrice":13937,"pnl":12,"source":"import","note":{"tags":["不符合入场规则"],"text":"","lesson":"线下不做多","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-11 18:04:30","closeTime":"2026-10-11 18:24:16"},"timeMigration":"la-to-beijing-v1"},"USTECH100CFD-20261013062654":{"market":"USTECH100CFD","marketName":"US Tech 100 CFD","side":"long","qty":0.1,"openTime":"2026-10-13 21:26:54","closeTime":"2026-10-13 21:46:00","openPrice":30428.7,"closePrice":30547.8,"pnl":11.91,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-13 06:26:54","closeTime":"2026-10-13 06:46:00"},"timeMigration":"la-to-beijing-v1"},"A50-20261013183716":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-10-14 09:37:16","closeTime":"2026-10-14 09:42:46","openPrice":13729,"closePrice":13744,"pnl":15,"source":"import","note":{"tags":["提前止盈离场"],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-13 18:37:16","closeTime":"2026-10-13 18:42:46"},"timeMigration":"la-to-beijing-v1"},"A50-20261015183223":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-10-16 09:32:23","closeTime":"2026-10-16 10:23:26","openPrice":13480,"closePrice":13543,"pnl":63,"source":"import","note":{"tags":["提前止盈离场"],"text":"","lesson":"","tp":13630,"sl":13430,"after":"sl","riskAmount":50,"execution":"violate","afterVerified":true},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-15 18:32:23","closeTime":"2026-10-15 19:23:26"},"timeMigration":"la-to-beijing-v1"},"A50-20261015051347":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-10-15 20:13:47","closeTime":"2026-10-16 09:30:10","openPrice":13493,"closePrice":13495,"pnl":2,"source":"import","note":{"tags":["保本损"],"text":"保本损 不走会被扫止损","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-15 05:13:47","closeTime":"2026-10-15 18:30:10"},"timeMigration":"la-to-beijing-v1"},"A50-20261020091041":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-10-21 00:10:41","closeTime":"2026-10-21 09:32:03","openPrice":13414,"closePrice":13364,"pnl":-50,"source":"import","note":{"tags":["不符合入场规则"],"text":"不止损的话 收盘浮亏 170 止损的价值体现出来了","lesson":"先线下不做多","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-20 09:10:41","closeTime":"2026-10-20 18:32:03"},"timeMigration":"la-to-beijing-v1"},"USTECH100CFD-20261019063548":{"market":"USTECH100CFD","marketName":"US Tech 100 CFD","side":"short","qty":0.1,"openTime":"2026-10-19 21:35:48","closeTime":"2026-10-19 23:27:16","openPrice":29559.2,"closePrice":29759.4,"pnl":-20.02,"source":"import","note":{"tags":["不符合入场规则"],"text":"没明确趋势 ","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-19 06:35:48","closeTime":"2026-10-19 08:27:16"},"timeMigration":"la-to-beijing-v1"},"USTECH100CFD-20261021174054":{"market":"USTECH100CFD","marketName":"US Tech 100 CFD","side":"long","qty":0.1,"openTime":"2026-10-22 08:40:54","closeTime":"2026-10-22 08:48:22","openPrice":29613.2,"closePrice":29634.9,"pnl":2.17,"source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-21 17:40:54","closeTime":"2026-10-21 17:48:22"},"timeMigration":"la-to-beijing-v1"},"MT5:FOREX.comGlobalCN-Live%20534:24954113:50097221":{"market":"A50","marketName":"中国A50指数 Micro","side":"long","qty":0.01,"openTime":"2026-10-23 12:30:01","closeTime":"2026-10-23 12:31:30","openPrice":12936,"closePrice":12931,"pnl":-0.05,"source":"mt5","note":{"tags":[],"text":"","lesson":"","tp":13436,"sl":12436,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"mt5":{"server":"FOREX.comGlobalCN-Live 534","account":"24954113","currency":"USD","position_ticket":"50097221","symbol_raw":"中国A50指数 Micro","open_time_raw":"2026-10-23 07:30:01","close_time_raw":"2026-10-23 07:31:30","server_utc_offset":3,"beijing_offset_hours":5,"gross_pnl":-0.05,"commission":0,"fee":0,"swap":0,"reported_sl":12436,"reported_tp":13436,"entry_deal_ids":["66223318"],"exit_deal_ids":["66223344"],"order_ids":["50097221","50097250"],"entry_comment":"SCE2 20261023","plan_source":"confirmed EA prefix SCE2 / opening order"},"tz":"北京"},"A50-20261025190511":{"market":"A50","marketName":"China A50 CFD Micro","side":"long","qty":0.01,"openTime":"2026-10-26 10:05:11","closeTime":"2026-10-26 13:56:13","openPrice":13018,"closePrice":13065,"pnl":0.47,"tz":"北京","source":"import","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-25 19:05:11","closeTime":"2026-10-25 22:56:13"},"timeMigration":"la-to-beijing-v1"},"USTECH100CFD-20261026065015":{"market":"USTECH100CFD","marketName":"US Tech 100 CFD","side":"short","qty":0.1,"openTime":"2026-10-26 21:50:15","closeTime":"2026-10-26 22:15:44","openPrice":29107,"closePrice":29157.3,"pnl":-5.03,"tz":"北京","source":"import","note":{"tags":["按计划执行"],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-26 06:50:15","closeTime":"2026-10-26 07:15:44"},"timeMigration":"la-to-beijing-v1"},"USTECH100CFD-20261026061125":{"market":"USTECH100CFD","marketName":"US Tech 100 CFD","side":"short","qty":0.1,"openTime":"2026-10-26 21:11:25","closeTime":"2026-10-26 21:37:52","openPrice":29087.9,"closePrice":29140.6,"pnl":-5.27,"tz":"北京","source":"import","note":{"tags":["按计划执行"],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-26 06:11:25","closeTime":"2026-10-26 06:37:52"},"timeMigration":"la-to-beijing-v1"},"MT5:FOREX.comGlobalCN-Live%20534:24954113:50175598":{"market":"USTECH100CFD","marketName":"US Tech 100 CFD","side":"short","qty":0.1,"openTime":"2026-10-27 03:00:02","closeTime":"2026-10-27 18:47:12","openPrice":29301.5,"closePrice":29453,"pnl":-15.15,"source":"mt5","tz":"北京","note":{"tags":["按计划执行"],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"mt5":{"server":"FOREX.comGlobalCN-Live 534","account":"24954113","currency":"USD","position_ticket":"50175598","symbol_raw":"纳斯达克100","open_time_raw":"2026-10-26 22:00:02","close_time_raw":"2026-10-27 13:47:12","server_utc_offset":3,"beijing_offset_hours":5,"gross_pnl":-15.15,"commission":0,"fee":0,"swap":0,"reported_sl":29451.5,"reported_tp":28851.5,"entry_deal_ids":["66309245"],"exit_deal_ids":["66346704"],"order_ids":["50175598","50192429"],"entry_comment":"SCE1 20261027","plan_source":null}},"MT5:FOREX.comGlobalCN-Live%20534:24954113:50206257":{"market":"USTECH100CFD","marketName":"纳斯达克100","side":"short","qty":0.1,"openTime":"2026-10-28 03:00:00","closeTime":"2026-10-28 11:50:32","openPrice":29643.1,"closePrice":29793.3,"pnl":-15.02,"source":"mt5","tz":"北京","note":{"tags":["按计划执行"],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"mt5":{"server":"FOREX.comGlobalCN-Live 534","account":"24954113","currency":"USD","position_ticket":"50206257","symbol_raw":"纳斯达克100","open_time_raw":"2026-10-27 22:00:00","close_time_raw":"2026-10-28 06:50:32","server_utc_offset":3,"beijing_offset_hours":5,"gross_pnl":-15.02,"commission":0,"fee":0,"swap":0,"reported_sl":29793.1,"reported_tp":29193.1,"entry_deal_ids":["66360010"],"exit_deal_ids":["66385960"],"order_ids":["50206257","50211968"],"entry_comment":"SCE1 20261028","plan_source":null}},"MT5:FOREX.comGlobalCN-Live%20534:24954113:50206259":{"market":"XAU","marketName":"XAUUSD","side":"short","qty":1,"openTime":"2026-10-28 03:00:01","closeTime":"2026-10-29 04:00:02","openPrice":4056.7,"closePrice":4076.96,"pnl":-20.26,"source":"mt5","tz":"北京","note":{"tags":["按计划执行"],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"mt5":{"server":"FOREX.comGlobalCN-Live 534","account":"24954113","currency":"USD","position_ticket":"50206259","symbol_raw":"XAUUSD","open_time_raw":"2026-10-27 22:00:01","close_time_raw":"2026-10-28 23:00:02","server_utc_offset":3,"beijing_offset_hours":5,"gross_pnl":-20.26,"commission":0,"fee":0,"swap":0,"reported_sl":4076.7,"reported_tp":4011.7,"entry_deal_ids":["66360011"],"exit_deal_ids":["66406947"],"order_ids":["50206259","50233671"],"entry_comment":"SCE1 20261028","plan_source":null}},"USTECH100CFD-20261028174704":{"market":"USTECH100CFD","marketName":"US Tech 100 CFD","side":"short","qty":1,"openTime":"2026-10-29 08:47:04","closeTime":"2026-10-29 09:49:01","openPrice":29588,"closePrice":29437.3,"pnl":150.7,"tz":"北京","source":"import","note":{"tags":["按计划执行"],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-28 17:47:04","closeTime":"2026-10-28 18:49:01"},"timeMigration":"la-to-beijing-v1"},"A50-20261029190149":{"market":"A50","marketName":"China A50 CFD Micro","side":"short","qty":0.1,"openTime":"2026-10-30 10:01:49","closeTime":"2026-10-30 10:29:56","openPrice":12951,"closePrice":12929,"pnl":2.2,"source":"import","note":{"tags":[],"text":"计划：空 0.1 @12951，止盈 12851，止损 13001，1R=$5；实际 12929 平，+$2.20（+0.44R），提前离场（未触及止盈止损）","lesson":"","tp":12851,"sl":13001,"after":"sl","riskAmount":5,"execution":"violate","afterVerified":false},"tz":"北京","originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-10-29 19:01:49","closeTime":"2026-10-29 19:29:56"},"timeMigration":"la-to-beijing-v1"},"MT5:FOREX.comGlobalCN-Live%20534:24954113:50388871":{"market":"A50","marketName":"中国A50指数 Micro","side":"long","qty":0.01,"openTime":"2026-11-04 12:00:01","closeTime":"2026-11-04 14:12:16","openPrice":12845,"closePrice":13075,"pnl":2.3,"source":"mt5","tz":"北京","note":{"tags":[],"text":"","lesson":"","tp":13145,"sl":12545,"after":"","riskAmount":null,"execution":"","afterVerified":false},"mt5":{"server":"FOREX.comGlobalCN-Live 534","account":"24954113","currency":"USD","position_ticket":"50388871","symbol_raw":"中国A50指数 Micro","open_time_raw":"2026-11-04 06:00:01","close_time_raw":"2026-11-04 08:12:16","server_utc_offset":2,"beijing_offset_hours":6,"gross_pnl":2.3,"commission":0,"fee":0,"swap":0,"reported_sl":12545,"reported_tp":13145,"entry_deal_ids":["66654597"],"exit_deal_ids":["66661039"],"order_ids":["50388871","50395425"],"entry_comment":"SCE2 20261104","plan_source":"confirmed EA prefix SCE2 / opening order"}},"MT5:FOREX.comGlobalCN-Live%20534:24954113:50421892":{"market":"USTECH100CFD","marketName":"纳斯达克100","side":"short","qty":0.1,"openTime":"2026-11-05 03:00:01","closeTime":"2026-11-05 09:11:48","openPrice":28489.5,"closePrice":28254.7,"pnl":23.48,"source":"mt5","tz":"北京","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"follow","afterVerified":false},"mt5":{"server":"FOREX.comGlobalCN-Live 534","account":"24954113","currency":"USD","position_ticket":"50421892","symbol_raw":"纳斯达克100","open_time_raw":"2026-11-04 21:00:01","close_time_raw":"2026-11-05 03:11:48","server_utc_offset":2,"beijing_offset_hours":6,"gross_pnl":23.48,"commission":0,"fee":0,"swap":0,"reported_sl":28639.5,"reported_tp":28254.9,"entry_deal_ids":["66686303"],"exit_deal_ids":["66710823"],"order_ids":["50421892","50426188"],"entry_comment":"SCE3 20261105","plan_source":null}},"MT5:FOREX.comGlobalCN-Live%20534:24954113:50465048":{"market":"XAU","marketName":"XAUUSD","side":"short","qty":1,"openTime":"2026-11-06 03:00:00","closeTime":"2026-11-06 09:24:41","openPrice":4104.14,"closePrice":4080.3,"pnl":23.84,"source":"mt5","tz":"北京","note":{"tags":[],"text":"手动止盈 结果能到60","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"violate","afterVerified":false},"mt5":{"server":"FOREX.comGlobalCN-Live 534","account":"24954113","currency":"USD","position_ticket":"50465048","symbol_raw":"XAUUSD","open_time_raw":"2026-11-05 21:00:00","close_time_raw":"2026-11-06 03:24:41","server_utc_offset":2,"beijing_offset_hours":6,"gross_pnl":23.84,"commission":0,"fee":0,"swap":0,"reported_sl":4134.14,"reported_tp":4044.14,"entry_deal_ids":["66747788"],"exit_deal_ids":["66775035"],"order_ids":["50465048","50471370"],"entry_comment":"SCE3 20261106","plan_source":null}},"MT5:FOREX.comGlobalCN-Live%20534:24954113:50537590":{"market":"XAU","marketName":"XAUUSD","side":"short","qty":1,"openTime":"2026-11-10 03:00:01","closeTime":"2026-11-10 03:40:45","openPrice":4103.72,"closePrice":4133.97,"pnl":-30.25,"source":"mt5","tz":"北京","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false},"mt5":{"server":"FOREX.comGlobalCN-Live 534","account":"24954113","currency":"USD","position_ticket":"50537590","symbol_raw":"XAUUSD","open_time_raw":"2026-11-09 21:00:01","close_time_raw":"2026-11-09 21:40:45","server_utc_offset":2,"beijing_offset_hours":6,"gross_pnl":-30.25,"commission":0,"fee":0,"swap":0,"reported_sl":4133.72,"reported_tp":4043.72,"entry_deal_ids":["66864852"],"exit_deal_ids":["66865614"],"order_ids":["50537590","50538253"],"entry_comment":"SCE3 20261110","plan_source":null}},"A50-20261115180252":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-11-16 10:02:52","closeTime":"2026-11-16 10:08:30","openPrice":12786,"closePrice":12814,"pnl":28,"tz":"北京","source":"import","note":{"tags":[],"text":"原本止损 50止盈150 提前走了","lesson":"","tp":null,"sl":null,"after":"sl","riskAmount":null,"execution":"violate","afterVerified":false},"originalTime":{"timeZone":"America/Los_Angeles","openTime":"2026-11-15 18:02:52","closeTime":"2026-11-15 18:08:30"},"timeMigration":"la-to-beijing-v1"}};
+const SEED_REV="20261116065615-49";
+const S={ready:false,trades:new Map(),mk:"ALL",side:"ALL",view:"list",onlyTodo:false,openId:null,drafts:{},mode:"local",db:null,dl:null,
+  fileHandle:null,fileName:"",fileSaveTimer:null,fileSaving:false,fileDirty:false,curveView:null};
+
+/* ---------- storage ---------- */
+// LV confirmed: broker exports use the download computer's local timezone.
+// Change this IANA zone when changing computer/timezone; legacy migration stays Los Angeles.
+const BROKER_SOURCE_TIME_ZONE='America/Los_Angeles';
+const BEIJING_MIGRATION='la-to-beijing-v1';
+function zoneWall(ms,zone){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms)).map(p=>[p.type,p.value]));
+  return p.year+'-'+p.month+'-'+p.day+' '+p.hour+':'+p.minute+':'+p.second;
+}
+function wallToBeijing(value,zone){
+  if(!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value))throw new Error('无效来源时间：'+value);
+  const wall=Date.parse(value.replace(' ','T')+'Z');
+  if(!Number.isFinite(wall)||zoneWall(wall,'UTC')!==value)throw new Error('无效来源时间：'+value);
+  // Derive possible offsets from Intl on both sides of any DST transition.
+  const offsets=new Set([-2,-1,0,1,2].map(days=>{const ms=wall+days*86400000;return Date.parse(zoneWall(ms,zone).replace(' ','T')+'Z')-ms}));
+  const matches=[...offsets].map(offset=>wall-offset).filter(ms=>zoneWall(ms,zone)===value);
+  if(matches.length!==1)throw new Error('来源时间处于夏令时重复或不存在时段，请核实：'+value+' '+zone);
+  return zoneWall(matches[0],'Asia/Shanghai');
+}
+function toBeijingTrade(t,zone='America/Los_Angeles'){
+  if(t.timeMigration===BEIJING_MIGRATION)return {...t,tz:'北京'};
+  const openTime=wallToBeijing(t.openTime,zone),closeTime=wallToBeijing(t.closeTime,zone);
+  return {...t,openTime,closeTime,tz:'北京',originalTime:{timeZone:zone,openTime:t.openTime,closeTime:t.closeTime},timeMigration:BEIJING_MIGRATION};
+}
+function tradeTz(t){return t.tz==='北京'||t.tz==='洛杉矶'?t.tz:(t.source==='mt5'?'北京':'洛杉矶')}
+function withTradeTz(t){return t.timeMigration===BEIJING_MIGRATION||tradeTz(t)==='洛杉矶'?toBeijingTrade(t):{...t,tz:'北京'}}
+function timezoneBadge(t){return `<span class="tz-badge">${tradeTz(t)}</span>`}
+function normalizedTrades(){return Object.fromEntries([...S.trades].map(([id,t])=>[id,withTradeTz(t)]))}
+const LS="fupan-trades-v1";
+const HANDLE_DB="fupan-file-handle-v1",HANDLE_STORE="kv",HANDLE_KEY="data-file";
+function lsLoad(){try{const o=JSON.parse(localStorage.getItem(LS)||"{}");S.trades=new Map(Object.entries(o).map(([id,t])=>[id,withTradeTz(t)]));if(JSON.stringify(o)!==JSON.stringify(normalizedTrades()))localStorage.setItem(LS,JSON.stringify(normalizedTrades()))}catch(e){}}
+function mergeEmbeddedSnapshotOnce(){
+  // New HTML snapshots are portable. On a familiar browser, preserve existing edits
+  // and add only trades not already present; never silently overwrite local notes.
+  const key="fupan-snapshot-applied-"+SEED_REV;
+  try{if(localStorage.getItem(key)==="yes")return;
+    let added=0;
+    for(const [id,trade] of Object.entries(SEED)){
+      if(!S.trades.has(id)){S.trades.set(id,trade);added++}
+    }
+    if(added)localStorage.setItem(LS,JSON.stringify(normalizedTrades()));
+    localStorage.setItem(key,"yes");
+  }catch(e){if(!S.trades.size)S.trades=new Map(Object.entries(SEED));}
+}
+function lsSave(trades=S.trades, schedule=true){
+  try{localStorage.setItem(LS,JSON.stringify(Object.fromEntries(trades)))}catch(e){toast("浏览器存储不可用，本次修改不会保留");return false}
+  if(schedule)scheduleDataFileSave();return true;
+}
+/* Classification changes never rewrite trade identity, notes or broker data. */
+const MARKET_FIX="market-fix-20261027-01",FIX_ID="MT5:FOREX.comGlobalCN-Live%20534:24954113:50175598";
+let marketChecking=false,marketPause=0,boundOriginal=null,boundMarketBlocked=false;
+const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+function inspectMarketFix(trades=S.trades){
+  const t=trades.get(FIX_ID);if(!t)return null;
+  const m=t.mt5||{};
+  if(m.server!=="FOREX.comGlobalCN-Live 534"||String(m.account)!=="24954113"||String(m.position_ticket)!=="50175598"||m.symbol_raw!=="纳斯达克100")return {conflict:true,t};
+  if(t.market==="USTECH100CFD")return null;
+  return {conflict:t.market!=="100",t};
+}
+function downloadMarketBackup(data){
+  const a=document.createElement("a"),url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
+  a.href=url;a.download="复盘本-分类修改前-"+Date.now()+".json";document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1500);
+}
+function marketConfirm(html,label="备份并修正"){
+  return new Promise(resolve=>{
+    const d=document.createElement("dialog");d.innerHTML=`<h3>品种分类检查</h3><div>${html}</div><p>仅修正品种分类，保留全部笔记及其他交易数据</p><button class="btn primary" data-yes>${label}</button> <button class="btn" data-no>暂不修正</button>`;
+    document.body.appendChild(d);let result=false;
+    d.querySelector('[data-yes]').onclick=()=>{result=true;d.close()};d.querySelector('[data-no]').onclick=()=>d.close();
+    d.addEventListener('close',()=>{d.remove();resolve(result)},{once:true});d.showModal();
+  });
+}
+function marketPreview(id,t,market,name){return `交易编号：${esc(id)}<br>日期：${esc(t.openTime)}<br>原品种：${esc(t.market)} / ${esc(t.marketName||"")}<br>目标品种：${esc(market)} / ${esc(name)}`}
+async function commitMarketChanges(changes,source){
+  const before=new Map(S.trades),next=new Map(S.trades);
+  for(const c of changes){if(!same(before.get(c.id),c.before))return {stale:true};next.set(c.id,{...c.before,market:c.market,marketName:c.marketName})}
+  if(next.size!==before.size||!same([...next.keys()],[...before.keys()]))throw new Error("交易集合校验失败");
+  for(const [id,t] of before){const n=next.get(id),c=changes.find(x=>x.id===id);if(!same(t.note,n.note)||!same(n,c?{...t,market:c.market,marketName:c.marketName}:t))throw new Error("交易字段校验失败")}
+  const record={source,at:new Date().toISOString(),changes:changes.map(c=>({id:c.id,from:{market:c.before.market,marketName:c.before.marketName},to:{market:c.market,marketName:c.marketName}}))};
+  const backup={app:"fupan",version:2,exportedAt:record.at,trades:[...before].map(([id,t])=>({id,...t})),migration:record,boundFileSnapshot:boundOriginal};
+  try{localStorage.setItem("fupan-market-backup-"+Date.now(),JSON.stringify(backup));downloadMarketBackup(backup)}catch(e){toast("独立备份失败，未修改交易");return {ok:false}}
+  if(!lsSave(next,false))return {ok:false};
+  S.trades=next;
+  try{const key="fupan-market-history",history=JSON.parse(localStorage.getItem(key)||"[]");history.push(record);localStorage.setItem(key,JSON.stringify(history))}catch(e){toast("分类已保存；历史记录写入失败，明细在独立备份中")}
+  if(S.mk!=="ALL"&&![...next.values()].some(t=>t.market===S.mk))S.mk="ALL";
+  render();return {ok:true};
+}
+async function checkMarketMigration(){
+  if(marketChecking)return false;
+  marketChecking=true;marketPause++;clearTimeout(S.fileSaveTimer);
+  let result=true,patched=false;
+  try{for(;;){const hit=inspectMarketFix();if(!hit)break;
+    if(hit.conflict){boundMarketBlocked=!!boundOriginal?.some(t=>t.id===FIX_ID&&t.market!==hit.t.market);toast("历史分类冲突：50175598 的分类或 MT5 资料已改变，未自动修改；请在单笔编辑中核对");break}
+    const before=JSON.parse(JSON.stringify(hit.t));
+    if(!await marketConfirm(marketPreview(FIX_ID,before,"USTECH100CFD","US Tech 100 CFD"))){boundMarketBlocked=!!boundOriginal;break}
+    const r=await commitMarketChanges([{id:FIX_ID,before,market:"USTECH100CFD",marketName:"US Tech 100 CFD"}],MARKET_FIX);
+    if(r.stale){toast("数据已变化，请重新确认预览");continue}result=r.ok;patched=r.ok;boundMarketBlocked=!r.ok;break;
+  }
+    if(result&&!inspectMarketFix()&&boundOriginal){
+      const fileMap=new Map(boundOriginal.map(({id,...t})=>[id,t])),hit=inspectMarketFix(fileMap);
+      if(hit){
+        if(hit.conflict){boundMarketBlocked=true;toast("绑定文件有分类冲突，已暂停回写，请核对文件后重新绑定")}
+        else if(S.trades.get(FIX_ID)?.market==="USTECH100CFD"){
+          // The local patch backup already includes the original bound file.
+          if(patched){boundMarketBlocked=false;boundOriginal=null}
+          else if(await marketConfirm("绑定文件中的历史错误：<br>"+marketPreview(FIX_ID,hit.t,"USTECH100CFD","US Tech 100 CFD"))){
+            if(inspectMarketFix()){boundMarketBlocked=true;toast("数据已变化，请重新检查历史分类");return false}
+            try{const backup={app:"fupan",trades:boundOriginal,migration:{source:MARKET_FIX,target:"bound-file",at:new Date().toISOString(),changes:[{id:FIX_ID,from:{market:hit.t.market,marketName:hit.t.marketName},to:{market:"USTECH100CFD",marketName:"US Tech 100 CFD"}}]}};localStorage.setItem("fupan-market-backup-file-"+Date.now(),JSON.stringify(backup));downloadMarketBackup(backup);boundMarketBlocked=false;boundOriginal=null}catch(e){boundMarketBlocked=true;result=false;toast("绑定文件独立备份失败，未回写")}
+          }else boundMarketBlocked=true;
+        }
+      }
+    }
+  }finally{marketPause--;marketChecking=false}
+  return result;
+}
+async function updateTradeMarket(id,market,marketName,source="manual"){
+  marketPause++;clearTimeout(S.fileSaveTimer);
+  try{for(;;){const t=S.trades.get(id);if(!t)return false;const before=JSON.parse(JSON.stringify(t));
+    if(t.market===market&&t.marketName===marketName)return true;
+    if(!await marketConfirm(marketPreview(id,t,market,marketName)))return false;
+    const r=await commitMarketChanges([{id,before,market,marketName}],source);if(r.stale)continue;if(!r.ok)boundMarketBlocked=true;else if(!boundOriginal&&!inspectMarketFix())boundMarketBlocked=false;return r.ok;
+  }}finally{marketPause--;if(!marketPause&&S.fileHandle)await saveDataFile(false)}
+}
+function marketOptions(){const options=new Map([["XAU","XAU/USD"],["A50","China A50 CFD"],["USTECH100CFD","US Tech 100 CFD"]]);for(const t of S.trades.values())if(!options.has(t.market))options.set(t.market,t.marketName||t.market);return options}
+function dataPayload(){return {app:"fupan",version:2,exportedAt:new Date().toISOString(),trades:[...S.trades.entries()].map(([id,t])=>({id,...withTradeTz(t)}))}}
+function openHandleDb(){return new Promise((resolve,reject)=>{
+  if(!window.indexedDB){reject(new Error("浏览器不支持保存文件授权"));return}
+  const r=indexedDB.open(HANDLE_DB,1);
+  r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(HANDLE_STORE))r.result.createObjectStore(HANDLE_STORE)};
+  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+})}
+async function rememberHandle(h){try{const db=await openHandleDb();await new Promise((res,rej)=>{const tx=db.transaction(HANDLE_STORE,"readwrite");tx.objectStore(HANDLE_STORE).put(h,HANDLE_KEY);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close()}catch(e){}}
+async function recalledHandle(){try{const db=await openHandleDb();const h=await new Promise((res,rej)=>{const tx=db.transaction(HANDLE_STORE,"readonly");const r=tx.objectStore(HANDLE_STORE).get(HANDLE_KEY);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)});db.close();return h}catch(e){return null}}
+async function handlePermission(h,ask=false){
+  if(!h)return false;
+  try{let p=await h.queryPermission({mode:"readwrite"});if(p==="granted")return true;if(ask)p=await h.requestPermission({mode:"readwrite"});return p==="granted"}catch(e){return false}
+}
+function setFileUi(kind,msg){
+  const st=$("#fileState"),b=$("#bBindData"),save=$("#bSaveData");
+  if(!st||!b)return;
+  st.textContent=msg||"";
+  st.className="note "+(kind==="ok"?"up":kind==="bad"?"down":"");
+  if(kind==="ok"){b.textContent="更换数据文件";save?.classList.remove("hidden")}
+  else if(kind==="warn"){b.textContent="授权数据文件";save?.classList.add("hidden")}
+  else{b.textContent="绑定数据文件";save?.classList.add("hidden")}
+}
+async function readDataFile(h){
+  const f=await h.getFile();if(!f.size)return [];
+  const txt=await f.text();if(!txt.trim())return [];
+  const obj=JSON.parse(txt),arr=Array.isArray(obj)?obj:obj.trades;
+  if(!Array.isArray(arr))throw new Error("选择的文件不是复盘数据文件");
+  return arr.filter(t=>t&&t.id&&t.openTime);
+}
+function mergeFileTrades(arr){
+  let added=0,restored=0;
+  for(const ft of arr){const {id,...body}=withTradeTz(ft),cur=S.trades.get(id);if(!cur){S.trades.set(id,{...body,note:{...emptyNote(),...(body.note||{})}});added++;continue}
+    const fn={...emptyNote(),...(body.note||{})},cn=noteOf(cur);
+    if(!reviewed(cur)&&(fn.tags.length||fn.text.trim()||fn.lesson.trim())){S.trades.set(id,{...cur,note:fn});restored++}
+  }
+  return {added,restored};
+}
+async function saveDataFile(silent=false){
+  if(marketPause||marketChecking||boundMarketBlocked){if(!silent)toast("分类检查尚未完成，文件回写暂停；请重新检查历史品种分类");return false}
+  if(!S.fileHandle)return false;
+  if(S.fileSaving){S.fileDirty=true;return false}
+  if(!(await handlePermission(S.fileHandle,false))){setFileUi("warn",`数据文件：${S.fileName||"已绑定"}（点击授权后自动保存）`);return false}
+  if(marketPause||marketChecking||boundMarketBlocked)return false;
+  S.fileSaving=true;S.fileDirty=false;
+  try{const w=await S.fileHandle.createWritable();if(marketPause||marketChecking||boundMarketBlocked){await w.abort();return false}await w.write(JSON.stringify(dataPayload(),null,1));await w.close();
+    setFileUi("ok",`数据文件：${S.fileName||"复盘数据.json"} · 已自动保存`);return true
+  }catch(e){setFileUi("bad","数据文件保存失败，浏览器缓存仍保留");$("#bSaveData")?.classList.remove("hidden");if(!silent)toast("数据文件保存失败，点击保存数据文件重试");return false}
+  finally{S.fileSaving=false;if(S.fileDirty){S.fileDirty=false;scheduleDataFileSave(150)}}
+}
+function scheduleDataFileSave(delay=500){
+  if(!S.fileHandle||marketPause||marketChecking)return;S.fileDirty=true;clearTimeout(S.fileSaveTimer);S.fileSaveTimer=setTimeout(()=>saveDataFile(true),delay);
+}
+async function bindDataFile(forcePicker=false){
+  if(S.fileSaving||marketChecking){toast("请等待当前保存或分类检查完成后再绑定");return false}
+  clearTimeout(S.fileSaveTimer);
+  if(!("showSaveFilePicker" in window)){toast("请用 Windows 上最新版 Edge 或 Chrome 打开此文件");return false}
+  try{
+    let h=!forcePicker?S.fileHandle:null;
+    if(h&&!(await handlePermission(h,true)))h=null;
+    if(!h){h=await window.showSaveFilePicker({suggestedName:"复盘数据.json",types:[{description:"复盘数据 JSON",accept:{"application/json":[".json"]}}]});await rememberHandle(h)}
+    if(!(await handlePermission(h,true)))return false;
+    S.fileHandle=h;S.fileName=h.name||"复盘数据.json";
+    let arr=[];marketPause++;try{arr=await readDataFile(h)}catch(e){if(!confirm("这个文件里已有内容但不是有效的复盘数据。要覆盖成新的复盘数据文件吗？")){boundMarketBlocked=true;return false}}finally{marketPause--}
+    boundOriginal=arr;boundMarketBlocked=false;marketPause++;clearTimeout(S.fileSaveTimer);const m=mergeFileTrades(arr);const persisted=lsSave(S.trades,false);marketPause--;
+    const checked=await checkMarketMigration();if(persisted&&checked)await saveDataFile(false);render();
+    toast(arr.length?`已连接 ${S.fileName}${m.added?`，恢复 ${m.added} 笔交易`:""}${m.restored?`，补回 ${m.restored} 笔备注`:""}`:`已创建并连接 ${S.fileName}`);return true
+  }catch(e){if(e?.name!=="AbortError")toast("绑定数据文件失败");return false}
+}
+async function restoreDataHandle(){
+  const h=await recalledHandle();if(!h)return;S.fileHandle=h;S.fileName=h.name||"复盘数据.json";
+  if(await handlePermission(h,false)){
+    try{const arr=await readDataFile(h);boundOriginal=arr;boundMarketBlocked=false;mergeFileTrades(arr);const persisted=lsSave(S.trades,false);
+      setFileUi("ok",`数据文件：${S.fileName} · 已连接`);if(!persisted)boundMarketBlocked=true
+    }catch(e){setFileUi("bad","已绑定的数据文件读取失败，请重新绑定")}
+  }else setFileUi("warn",`数据文件：${S.fileName} · 等待授权`);
+}
+
+async function putTrade(id,body){
+  body=withTradeTz(body);
+  if(S.db){await S.db.collection("trades").doc(id).set(body)}
+  else{const next=new Map(S.trades);next.set(id,body);if(!lsSave(next))throw new Error("存储写入失败");S.trades=next;onData(false)}
+}
+async function putNote(id,note){
+  const t=S.trades.get(id);if(t)S.trades.set(id,{...t,note});
+  if(S.db){await S.db.collection("trades").doc(id).update({note})}
+  else if(t){lsSave();onData(true)}
+}
+async function delTrade(id){
+  if(S.db){await S.db.collection("trades").doc(id).delete()}
+  else{S.trades.delete(id);lsSave();onData(false)}
+}
+async function writeMany(items){ // [{id,body}] sequential-ish, 4 at a time
+  let i=0,done=0;const errs=[];
+  async function worker(){while(i<items.length){const it=items[i++];try{await putTrade(it.id,it.body);done++}catch(e){errs.push(e)}}}
+  await Promise.all([worker(),worker(),worker(),worker()]);
+  return {done,errs};
+}
+
+async function boot(){
+  bootStage("正在准备界面");
+  render();
+  let db=null;
+  $("#bExport").classList.remove("hidden");
+  if(db){
+    bootStage("正在连接云端数据");
+    S.db=db;S.mode="db";
+    db.collection("trades").orderBy("openTime","desc").limit(1000).onSnapshot(snap=>{
+      const ch=snap.docChanges();
+      S.trades=new Map(snap.docs.map(d=>[d.id,withTradeTz(d.data())]));
+      const onlyOpen=S.openId&&ch.length>0&&ch.every(c=>c.type==="modified"&&c.doc.id===S.openId);
+      S.ready=true;onData(onlyOpen);bootDone();
+    },err=>{toast("云端同步暂时中断，稍后会自动恢复");bootDone()});
+  }else{
+    bootStage("正在读取本地交易");
+    lsLoad();
+    mergeEmbeddedSnapshotOnce();
+    if(!S.trades.size){S.trades=new Map(Object.entries(SEED));try{localStorage.setItem(LS,JSON.stringify(normalizedTrades()))}catch(e){}}
+    repairMt5DstTimes();
+    bootStage("正在检查数据文件");
+    await restoreDataHandle();
+    if(await checkMarketMigration())scheduleDataFileSave(800);
+    bootStage("正在生成复盘统计");
+    S.ready=true;render();
+    requestAnimationFrame(()=>requestAnimationFrame(bootDone));
+  }
+  $("#modeNote").textContent="Windows 本地版：浏览器缓存是备用副本；绑定复盘数据.json 后，导入、备注、删除都会自动写入该文件。";
+  if(!S.fileHandle)setFileUi("","数据文件：未绑定");
+}
+
+/* ---------- derived ---------- */
+const pts=t=>t.side==="long"?t.closePrice-t.openPrice:t.openPrice-t.closePrice;
+const perPt=t=>{const p=pts(t);return Math.abs(p)>1e-9?t.pnl/p:(t.qty||1)};
+// Merge legacy note fields for display and subsequent saves; keep embedded data intact.
+const noteOf=t=>{
+  const n={...emptyNote(),...(t.note||{})};
+  n.text=[n.text,n.lesson].filter(v=>v!=="").join("\n\n");
+  n.lesson="";
+  return n;
+};
+/* ---------- original-plan comparison: intentionally conservative ---------- */
+const numOrNull=v=>(v==null||v==="")?null:(Number.isFinite(+v)?+v:null);
+function planned(t,n){
+  const tp=numOrNull(n.tp),sl=numOrNull(n.sl),risk=numOrNull(n.riskAmount);
+  const sign=t.side==="long"?1:-1;
+  const targetDist=tp==null?null:(tp-t.openPrice)*sign;
+  const stopDist=sl==null?null:(t.openPrice-sl)*sign;
+  const validPrices=targetDist!=null&&stopDist!=null&&targetDist>0&&stopDist>0;
+  const amountOK=risk!=null&&risk>0;
+  const result={tp,sl,risk,targetDist,stopDist,validPrices,amountOK,
+    ratio:validPrices?targetDist/stopDist:null,
+    actualR:amountOK?t.pnl/risk:null,
+    status:"pending",hypothetical:null,delta:null};
+  // A first-touch result requires BOTH intended exit prices, a positive risk amount,
+  // and explicit manual verification of the subsequent price path.
+  if(validPrices&&amountOK&&n.afterVerified===true&&(n.after==="tp"||n.after==="sl")){
+    result.status="confirmed_by_user";
+    result.hypothetical=n.after==="tp"?risk*result.ratio:-risk;
+    result.delta=t.pnl-result.hypothetical;
+  }
+  return result;
+}
+const reviewed=t=>{const n=noteOf(t);return !!(n.tags.length||n.text.trim()||n.lesson.trim()||n.tp!=null||n.sl!=null||n.riskAmount!=null||n.execution||n.after||n.afterVerified)};
+function reviewState(t){
+  const n=noteOf(t),p=planned(t,n);
+  if(p.validPrices&&p.amountOK&&(n.execution==="follow"||n.execution==="violate"))return "complete";
+  return reviewed(t)?"partial":"none";
+}
+const reviewLabel=t=>({complete:"复盘完整",partial:"部分复盘",none:"未复盘"})[reviewState(t)];
+const execLabel=v=>({follow:"按计划执行",violate:"偏离计划",unknown:"待确认"})[v]||"未评价";
+
+function filtered(){
+  let a=[...S.trades.entries()].map(([id,t])=>({id,...withTradeTz(t)}));
+  if(S.mk!=="ALL")a=a.filter(t=>t.market===S.mk);
+  if(S.side!=="ALL")a=a.filter(t=>t.side===S.side);
+  return a.sort((x,y)=>y.openTime<x.openTime?-1:1);
+}
+const fmtP=(v,dp)=>isFinite(v)?Number(v).toFixed(dp):"—";
+const fmtPnl=v=>(v>0?"+":v<0?"−":"")+Math.abs(v).toLocaleString("en-US",{maximumFractionDigits:2});
+const cls=v=>v>0?"up":v<0?"down":"";
+function hold(a,b){
+  const ms=new Date(b.replace(" ","T"))-new Date(a.replace(" ","T"));if(!(ms>=0))return"";
+  const m=Math.round(ms/6e4),h=Math.floor(m/60),d=Math.floor(h/24);
+  return d?`${d}天${h%24?h%24+"小时":""}`:h?`${h}小时`:`${m}分钟`;
+}
+const md=s=>`${+s.slice(5,7)}月${+s.slice(8,10)}日 ${s.slice(11,16)}`;
+
+/* ---------- render ---------- */
+function onData(onlyOpen){
+  if(onlyOpen){renderTop();patchRow(S.openId);if(S.view==="lib")renderLib();return}
+  render();
+}
+function render(){renderMkSeg();document.querySelectorAll("#sideSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.side===S.side));renderTop();if(S.view==="list")renderList();else renderLib()}
+
+function renderMkSeg(){
+  const codes=new Set([...S.trades.values()].map(t=>t.market));
+  const opts=[["ALL","全部",null],["XAU","黄金",MK.XAU.color],["A50","A50",MK.A50.color]];
+  codes.forEach(c=>{if(!MK[c])opts.push([c,c,"var(--other)"])});
+  $("#mkSeg").innerHTML=opts.map(([v,l,c])=>`<button data-mk="${esc(v)}" aria-pressed="${S.mk===v}">${c?`<span class="dot" style="background:${c}"></span>`:""}${esc(l)}</button>`).join("");
+}
+
+function tagStats(list){
+  const m=new Map();
+  for(const t of list){const n=noteOf(t);for(const g of n.tags){
+    if(!m.has(g))m.set(g,{tag:g,trades:[],pnl:0,verified:0,toTp:0,toSl:0});
+    const s=m.get(g);s.trades.push(t);s.pnl+=t.pnl;
+    if(g===EARLY_TP&&planned(t,n).status==="confirmed_by_user"){
+      s.verified++;if(n.after==="tp")s.toTp++;if(n.after==="sl")s.toSl++;
+    }
+  }}
+  return [...m.values()].sort((a,b)=>b.trades.length-a.trades.length||a.pnl-b.pnl);
+}
+
+function renderTop(){
+  const list=filtered();
+  // memory card
+  const bad=tagStats(list).filter(s=>!GOOD_TAGS.includes(s.tag)&&!NEUTRAL_TAGS.includes(s.tag));
+  const mem=$("#memory");
+  if(!bad.length){
+    mem.innerHTML=`<div class="memory empty"><div class="k">最常犯的错</div><div class="tag">还没有记录</div><div class="facts">点开任意一笔交易，给它打上标签、写下当时的情况。同样的错误犯到第二次，就会出现在这里。</div></div>`;
+  }else{
+    const s=bad[0];
+    const withWords=s.trades.map(t=>({t,n:noteOf(t)})).filter(x=>x.n.lesson.trim()||x.n.text.trim()).sort((a,b)=>b.t.closeTime<a.t.closeTime?-1:1)[0];
+    let facts=`犯了 <b>${s.trades.length}</b> 次，这些交易合计 <b>${fmtPnl(s.pnl)}</b>`;
+    if(s.tag===EARLY_TP&&s.verified)facts+=`；已核对后续走势 <b>${s.verified}</b> 笔（先止盈 ${s.toTp}、先止损 ${s.toSl}）`;
+    let q="";
+    if(withWords){const w=withWords.n.lesson.trim()||withWords.n.text.trim();q=`<blockquote>${esc(w)}<small>${withWords.n.lesson.trim()?"你给自己定的规则":"你当时写的"}，${md(withWords.t.closeTime)} ${esc(mkInfo(withWords.t.market).name)}</small></blockquote>`}
+    mem.innerHTML=`<div class="memory"><div class="k">最常犯的错${S.mk==="ALL"?"":"（"+esc(mkInfo(S.mk).name)+"）"}</div><div class="tag">${esc(s.tag)}</div><div class="facts">${facts}</div>${q}</div>`;
+  }
+  // stats
+  const n=list.length,w=list.filter(t=>t.pnl>0),l=list.filter(t=>t.pnl<0);
+  const tot=list.reduce((a,t)=>a+t.pnl,0);
+  const aw=w.length?w.reduce((a,t)=>a+t.pnl,0)/w.length:0,al=l.length?-l.reduce((a,t)=>a+t.pnl,0)/l.length:0;
+  const rv=list.filter(t=>reviewState(t)==="complete").length;
+  const assessed=list.filter(t=>["follow","violate"].includes(noteOf(t).execution));
+  const follows=assessed.filter(t=>noteOf(t).execution==="follow").length;
+  const withRisk=list.filter(t=>planned(t,noteOf(t)).amountOK);
+  const avgR=withRisk.length?withRisk.reduce((a,t)=>a+planned(t,noteOf(t)).actualR,0)/withRisk.length:null;
+  const confirmed=list.filter(t=>planned(t,noteOf(t)).status==="confirmed_by_user").length;
+  const eq=[...list].sort((a,b)=>a.closeTime<b.closeTime?-1:1);let c=0;
+  const curvePts=[{value:0,delta:0,label:"起点",market:"",side:""},...eq.map(t=>({value:(c+=t.pnl),delta:t.pnl,label:md(t.closeTime),market:mkInfo(t.market).name,side:t.side==="long"?"做多":"做空"}))];
+  $("#stats").innerHTML=`<div class="stats ${n>1?"withcurve":""}">
+    <div><div class="l">总盈亏</div><div class="v ${cls(tot)}">${n?fmtPnl(tot):"—"}</div></div>
+    <div><div class="l">胜率</div><div class="v">${n?Math.round(w.length/n*100)+"%":"—"}</div></div>
+    <div><div class="l">盈亏比</div><div class="v">${aw&&al?(aw/al).toFixed(2):"—"}</div></div>
+    <div><div class="l">复盘完整</div><div class="v">${rv}/${n}</div></div></div>
+    <div class="quality-strip">
+      <span>纪律执行 <b>${assessed.length?Math.round(follows/assessed.length*100)+"%":"—"}</b> <small>（${follows}/${assessed.length} 笔已评价）</small></span>
+      <span>已填初始风险 <b>${withRisk.length}/${n}</b></span>
+      <span>平均实际 R <b>${avgR==null?"—":(avgR>0?"+":"")+avgR.toFixed(2)+"R"}</b> <small>（仅${withRisk.length}笔）</small></span>
+      <span>计划结果已核对 <b>${confirmed}</b> 笔</span>
+    </div>
+    ${n>1?`<div class="curve">${spark(curvePts)}</div>`:""}`;
+  if(n>1)requestAnimationFrame(bindCurveHover);
+}
+function spark(points){
+  return `<div class="curve-head"><div class="curve-titlebox"><span class="curve-title">累计盈亏曲线</span><span class="curve-hint">悬停看数值 · 放大后可拖动平移</span></div><div class="curve-controls" aria-label="资金曲线缩放"><button type="button" class="curve-zoom" data-curve-out title="缩小" aria-label="缩小">−</button><span class="curve-range" data-curve-range>全部</span><button type="button" class="curve-zoom" data-curve-in title="放大" aria-label="放大">＋</button><button type="button" class="curve-reset" data-curve-reset title="显示全部">全部</button></div></div>
+    <div class="curve-plot" data-curve="${esc(JSON.stringify(points))}">
+      <svg viewBox="0 0 900 112" preserveAspectRatio="none" role="img" aria-label="累计盈亏曲线"></svg><div class="curve-tooltip"></div>
+    </div>`;
+}
+function bindCurveHover(){
+  const box=document.querySelector(".curve-plot");if(!box)return;
+  let points;try{points=JSON.parse(box.dataset.curve||"[]")}catch(e){return}if(points.length<2)return;
+  const svg=box.querySelector("svg"),tip=box.querySelector(".curve-tooltip"),rangeEl=box.closest(".curve")?.querySelector("[data-curve-range]"),btnIn=box.closest(".curve")?.querySelector("[data-curve-in]"),btnOut=box.closest(".curve")?.querySelector("[data-curve-out]"),btnReset=box.closest(".curve")?.querySelector("[data-curve-reset]");
+  const W=900,H=112,P=7,total=points.length;
+  let start=0,end=total,hoverGlobal=null,drag=null;
+  if(S.curveView&&S.curveView.key===S.mk&&S.curveView.total===total){start=Math.max(0,Math.min(total-2,S.curveView.start|0));end=Math.max(start+2,Math.min(total,S.curveView.end|0))}
+  const persist=()=>{S.curveView={key:S.mk,total,start,end}};
+  const fmtRange=()=>{const shown=end-start;if(shown>=total)return "全部";const a=points[start]?.label||"",b=points[end-1]?.label||"";return `${shown}/${total} · ${a.replace(/\s.*$/,'')}–${b.replace(/\s.*$/,'')}`};
+  const hideTip=()=>{tip.classList.remove("show");box.classList.remove("active")};
+  const draw=()=>{
+    const visible=points.slice(start,end),v=visible.map(p=>p.value),mn=Math.min(...v,0),mx=Math.max(...v,0),r=mx-mn||1;
+    const x=i=>visible.length===1?W/2:i/(visible.length-1)*W,y=val=>H-P-(val-mn)/r*(H-P*2);
+    const d=v.map((val,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(val).toFixed(1)}`).join("");
+    const area=`M0,${H-P} ${d.replace(/^M/,"L")} L${W},${H-P} Z`;
+    const last=points[points.length-1].value,lineColor=last>=0?"var(--up)":"var(--down)";
+    const grid=[mn+(mx-mn)*.25,mn+(mx-mn)*.5,mn+(mx-mn)*.75].map(g=>`<line x1="0" x2="${W}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" opacity=".42" stroke-dasharray="2 6" vector-effect="non-scaling-stroke"/>`).join("");
+    const dots=v.map((val,i)=>`<circle class="curve-point" cx="${x(i).toFixed(1)}" cy="${y(val).toFixed(1)}" r="2.7" style="color:${lineColor}"/>`).join("");
+    svg.innerHTML=`<defs><linearGradient id="curveArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${lineColor}" stop-opacity=".18"/><stop offset="1" stop-color="${lineColor}" stop-opacity="0"/></linearGradient></defs>${grid}<line x1="0" x2="${W}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line)" stroke-dasharray="5 5" vector-effect="non-scaling-stroke"/><path d="${area}" fill="url(#curveArea)"/><path d="${d}" fill="none" stroke="${lineColor}" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>${dots}<line class="curve-hover-line" x1="0" x2="0" y1="0" y2="${H}"/><circle class="curve-hover-dot" cx="0" cy="0" r="4.3"/>`;
+    box.dataset.min=mn;box.dataset.max=mx;box.classList.toggle("zoomed",end-start<total);if(rangeEl)rangeEl.textContent=fmtRange();if(btnOut)btnOut.disabled=end-start>=total;if(btnIn)btnIn.disabled=end-start<=4;hideTip();persist();
+  };
+  const clampWindow=(newStart,count)=>{count=Math.max(4,Math.min(total,count));newStart=Math.max(0,Math.min(total-count,newStart));start=newStart;end=newStart+count;draw()};
+  const zoom=(dir,focusGlobal=null)=>{
+    const count=end-start;if(dir>0&&count<=4)return;if(dir<0&&count>=total)return;
+    const next=dir>0?Math.max(4,Math.round(count*.68)):Math.min(total,Math.ceil(count/0.68));
+    const focus=focusGlobal==null?(start+end-1)/2:focusGlobal,ratio=count>1?(focus-start)/(count-1):.5;
+    clampWindow(Math.round(focus-ratio*(next-1)),next);
+  };
+  const show=e=>{
+    if(drag)return;
+    const rect=box.getBoundingClientRect(),visibleCount=end-start,rel=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+    const local=Math.max(0,Math.min(visibleCount-1,Math.round(rel*(visibleCount-1)))),i=start+local,p=points[i];hoverGlobal=i;
+    const mn=+box.dataset.min,mx=+box.dataset.max,r=mx-mn||1,sy=val=>H-P-(val-mn)/r*(H-P*2),cx=visibleCount===1?W/2:local/(visibleCount-1)*W,cy=sy(p.value),px=cx/W*rect.width,py=cy/H*rect.height;
+    const line=svg.querySelector(".curve-hover-line"),dot=svg.querySelector(".curve-hover-dot");if(!line||!dot)return;
+    line.setAttribute("x1",cx);line.setAttribute("x2",cx);dot.setAttribute("cx",cx);dot.setAttribute("cy",cy);
+    tip.innerHTML=`<div class="ct-main ${cls(p.value)}">${fmtPnl(p.value)}</div><div class="ct-sub">${esc(p.label)}${p.market?` · ${esc(p.market)} ${esc(p.side)}`:""}</div>${i?`<div class="ct-delta">本笔 <span class="num ${cls(p.delta)}">${fmtPnl(p.delta)}</span></div>`:""}`;
+    tip.style.left=px+"px";tip.style.top=py+"px";tip.classList.toggle("flip",px>rect.width*.72);tip.classList.add("show");box.classList.add("active");
+  };
+  if(btnIn)btnIn.onclick=()=>zoom(1,hoverGlobal);if(btnOut)btnOut.onclick=()=>zoom(-1,hoverGlobal);if(btnReset)btnReset.onclick=()=>{start=0;end=total;draw()};
+  box.onpointermove=e=>{if(drag){const rect=box.getBoundingClientRect(),count=drag.end-drag.start,shift=Math.round((drag.x-e.clientX)/rect.width*Math.max(1,count-1));if(shift!==drag.lastShift){drag.lastShift=shift;const ns=Math.max(0,Math.min(total-count,drag.start+shift));start=ns;end=ns+count;draw()}return}show(e)};
+  box.onpointerenter=show;box.onpointerleave=()=>{if(!drag)hideTip()};
+  box.onpointerdown=e=>{if(end-start>=total||e.button!==0)return;drag={x:e.clientX,start,end,lastShift:0};box.classList.add("dragging");hideTip();try{box.setPointerCapture(e.pointerId)}catch(_){};e.preventDefault()};
+  box.onpointerup=e=>{if(!drag)return;drag=null;box.classList.remove("dragging");try{box.releasePointerCapture(e.pointerId)}catch(_){};persist();show(e)};
+  box.onpointercancel=()=>{drag=null;box.classList.remove("dragging");hideTip()};
+  box.ondblclick=()=>{start=0;end=total;draw()};
+  draw();
+}
+
+function rowSummary(t,compact=false){
+  const i=mkInfo(t.market),n=noteOf(t);
+  const tags=n.tags.map(g=>`<span class="tg ${GOOD_TAGS.includes(g)?"good":BAD_TAGS.includes(g)?"bad":""}">${esc(g)}</span>`).join("");
+  const snip=(n.lesson||n.text||"").trim();
+  if(compact){
+    const tag=`<span class="tg compact-tag ${reviewState(t)==="complete"?"good":""}">${reviewLabel(t)}</span>`;
+    return `<div class="compact-main"><div class="compact-top"><span class="mk">${esc(i.name)}</span><span class="side">${t.side==="long"?"做多":"做空"}${t.qty&&t.qty!==1?" "+t.qty:""}</span><span class="when">${md(t.openTime)} ${timezoneBadge(t)}</span></div><div class="compact-bottom"><span class="num">${fmtP(t.openPrice,i.dp)} → ${fmtP(t.closePrice,i.dp)}</span><span class="hd">${hold(t.openTime,t.closeTime)}</span>${tag}</div></div><div class="pnl ${cls(t.pnl)}">${fmtPnl(t.pnl)}</div>`;
+  }
+  return `<div class="l1"><span class="mk">${esc(i.name)}</span><span class="side">${t.side==="long"?"做多":"做空"}${t.qty&&t.qty!==1?" "+t.qty:""}</span><span class="when">${md(t.openTime)} ${timezoneBadge(t)}</span></div>
+  <div class="pnl ${cls(t.pnl)}">${fmtPnl(t.pnl)}</div>
+  <div class="l2"><span class="num">${fmtP(t.openPrice,i.dp)}</span> → <span class="num">${fmtP(t.closePrice,i.dp)}</span>　<span class="hd">持仓 ${hold(t.openTime,t.closeTime)}</span></div>
+  ${tags?`<div class="tags">${tags}</div>`:""}
+  ${snip?`<div class="snip">${esc(snip)}</div>`:""}<div class="review-pill ${reviewState(t)}">${reviewLabel(t)}</div>`;
+}
+function isDesktopList(){return window.matchMedia&&window.matchMedia("(min-width:900px)").matches}
+function detailHtml(t){
+  if(!t)return `<div class="detail-empty"><div><b>选择一笔交易</b>左侧点击交易后，在这里完成复盘。</div></div>`;
+  const i=mkInfo(t.market);
+  return `<div class="detail-card" style="--mc:${i.color}"><div class="detail-hero"><div class="detail-title"><span class="mk">${esc(i.name)}</span><span class="side">${t.side==="long"?"做多":"做空"}${t.qty&&t.qty!==1?" "+t.qty:""}</span><span class="when">${md(t.openTime)} ${timezoneBadge(t)}</span></div><div class="detail-pnl ${cls(t.pnl)}">${fmtPnl(t.pnl)}</div><div class="detail-price">${fmtP(t.openPrice,i.dp)} → ${fmtP(t.closePrice,i.dp)}</div><div class="detail-meta"><span class="detail-label">平仓</span>${md(t.closeTime)} ${timezoneBadge(t)}　·　<span class="detail-label">持仓</span>${hold(t.openTime,t.closeTime)}</div></div>${simpleEditorHtml(t)}</div>`;
+}
+function renderList(){
+  let list=filtered();if(S.onlyTodo)list=list.filter(t=>reviewState(t)!=="complete"||t.id===S.openId);
+  const box=$("#list"),desktop=isDesktopList();
+  if(!S.ready){box.innerHTML=`<div class="emptybox">正在加载…</div>`;return}
+  if(!S.trades.size){box.innerHTML=`<div class="emptybox">还没有交易记录。点右上角「导入记录」，选择券商导出的交易历史文件。</div>`;return}
+  if(!list.length){box.innerHTML=`<div class="emptybox">${S.onlyTodo?"这里的交易已经完成结构化复盘。":"这个品种还没有交易。"}</div>`;return}
+  if(desktop&&!list.some(t=>t.id===S.openId))S.openId=list[0].id;
+  let html="",cur="",monthItems=[];
+  const closeMonth=()=>{if(!monthItems.length)return;const s=monthItems.reduce((a,x)=>a+x.pnl,0);html+=`<div class="month"><span>${cur.slice(0,4)}年${+cur.slice(5)}月　${monthItems.length}笔</span><span class="num ${cls(s)}">${fmtPnl(s)}</span></div><div class="list">${monthItems.map(t=>`<article class="trade ${desktop?"compact ":""}${S.openId===t.id?"selected":""}" id="t-${esc(t.id)}" style="--mc:${mkInfo(t.market).color}"><button class="sum" data-open="${esc(t.id)}" aria-expanded="${S.openId===t.id}">${rowSummary(t,desktop)}</button>${!desktop&&S.openId===t.id?editorHtml(t):""}</article>`).join("")}</div>`;monthItems=[]};
+  for(const t of list){const m=t.openTime.slice(0,7);if(m!==cur){closeMonth();cur=m}monthItems.push(t)}closeMonth();
+  if(desktop){
+    const selected=S.openId?{id:S.openId,...S.trades.get(S.openId)}:null;
+    box.innerHTML=`<div class="trade-workspace"><div class="trade-list-pane">${html}</div><aside class="trade-detail-pane" aria-label="交易复盘详情">${detailHtml(selected)}</aside></div>`;
+  }else box.innerHTML=html;
+  if(S.openId&&document.querySelector(`[data-ed="${CSS.escape(S.openId)}"]`))bindEditor(S.openId);
+}
+function patchRow(id){
+  const el=document.getElementById("t-"+id);const t=S.trades.get(id);
+  if(el&&t)el.querySelector(".sum").innerHTML=rowSummary({id,...t},isDesktopList());
+}
+
+/* ---------- editor ---------- */
+function editorHtml(t){
+  const n=S.drafts[t.id]||noteOf(t);
+  const all=allTags();
+  const chip=(g,k)=>`<button type="button" class="${k}" data-tag="${esc(g)}" aria-pressed="${n.tags.includes(g)}">${esc(g)}</button>`;
+  return `<div class="ed" data-ed="${esc(t.id)}">
+  <div><h4>这笔交易的问题（可多选）</h4><div class="chips">${BAD_TAGS.map(g=>chip(g,"bad")).join("")}${all.custom.map(g=>chip(g,"cus")).join("")}${GOOD_TAGS.map(g=>chip(g,"good")).join("")}<button type="button" class="add" data-addtag>＋ 自定义</button></div></div>
+  <div class="review-part">
+    <h4>① 原计划（尽可能填写开仓前设定的价格）</h4>
+    <div class="two"><label class="field">初始止盈价<input type="number" step="any" inputmode="decimal" data-f="tp" value="${n.tp??""}"></label><label class="field">初始止损价<input type="number" step="any" inputmode="decimal" data-f="sl" value="${n.sl??""}"></label></div>
+    <label class="field" style="margin-top:8px">初始计划风险金额（1R，以券商盈亏的同一货币计）<input type="number" min="0.01" step="any" inputmode="decimal" data-f="riskAmount" placeholder="例如 50；历史不确定就留空" value="${n.riskAmount??""}"></label>
+    <p class="note" style="margin:5px 0 0">这是开仓前计划最多承担的风险，不是实际亏损；请勿根据最终盈亏倒填。</p>
+  </div>
+  <div class="review-part">
+    <h4>② 纪律执行（独立于这笔是否盈利）</h4>
+    <div class="chips execution-chips">${[["follow","按计划执行"],["violate","偏离原计划"],["unknown","暂不确定"]].map(([k,label])=>`<button type="button" class="cus" data-exec="${k}" aria-pressed="${(n.execution||"")===k}">${label}</button>`).join("")}</div>
+    <p class="note" style="margin:6px 0 0">纪律评价由你主动确认；标签、胜率和盈亏不会自动决定评价。</p>
+  </div>
+  <div class="review-part">
+    <h4>③ 原计划与实际结果</h4>
+    <div class="calc" data-calc></div>
+    <div data-afterbox><h4 style="margin-top:10px">提前离场后，核对原止盈 / 原止损哪个先触发</h4><div class="chips">${Object.entries(AFTER).map(([k,v])=>`<button type="button" class="cus" data-after="${k}" aria-pressed="${n.after===k}">${v}</button>`).join("")}</div>
+    <label class="verified-line"><input type="checkbox" data-check="afterVerified" ${n.afterVerified===true?"checked":""}> 已查历史走势，确认以上先后顺序（仅适用于先止盈/先止损）</label>
+    <p class="note" style="margin:5px 0 0">未核对则仅展示价位差，不会把“少拿利润”当成实际机会成本。核对也仅为手工复盘，不代表交易已自动回测。</p></div>
+  </div>
+  <label class="field">复盘记录<textarea data-f="text" rows="6" placeholder="记录交易经过、自己的想法，以及下次的改进做法">${esc(n.text)}</textarea></label>
+  <div class="edfoot"><span data-st>改动会自动保存</span><button type="button" class="btn ghost" data-del>删除这笔交易</button></div></div>`;
+}
+
+/* Desktop presentation only; shared editor bindings and data remain unchanged. */
+function simpleEditorHtml(t){
+  const n=S.drafts[t.id]||noteOf(t);
+  const all=allTags();
+  const chip=(g,k)=>`<button type="button" class="${k}" data-tag="${esc(g)}" aria-pressed="${n.tags.includes(g)}">${esc(g)}</button>`;
+  return `<div class="ed simple-review" data-ed="${esc(t.id)}">
+  <div class="review-part">
+    <h4>这笔有没有按计划执行？</h4>
+    <div class="chips execution-chips">${[["follow","按计划执行"],["violate","偏离原计划"],["unknown","暂不确定"]].map(([k,label])=>`<button type="button" class="cus" data-exec="${k}" aria-pressed="${(n.execution||"")===k}">${label}</button>`).join("")}</div>
+    <p class="note" style="margin:6px 0 0">只看是否遵守计划，不看赚赔。</p>
+  </div>
+  <label class="field">复盘记录<textarea data-f="text" rows="6" placeholder="记录交易经过、自己的想法，以及下次的改进做法">${esc(n.text)}</textarea></label>
+  <details class="review-fold"><summary>交易标签</summary><div class="fold-body">  <div><p class="note">可多选，也可以添加自己的标签。</p><div class="chips">${BAD_TAGS.map(g=>chip(g,"bad")).join("")}${all.custom.map(g=>chip(g,"cus")).join("")}${GOOD_TAGS.map(g=>chip(g,"good")).join("")}<button type="button" class="add" data-addtag>＋ 自定义</button></div></div>
+</div></details>
+  <details class="review-fold"><summary>原计划与结果对照</summary><div class="fold-body">  <div class="review-part">
+    <h4>开仓前的计划</h4>
+    <div class="two"><label class="field">初始止盈价<input type="number" step="any" inputmode="decimal" data-f="tp" value="${n.tp??""}"></label><label class="field">初始止损价<input type="number" step="any" inputmode="decimal" data-f="sl" value="${n.sl??""}"></label></div>
+    <label class="field" style="margin-top:8px">初始计划风险金额（1R，以券商盈亏的同一货币计）<input type="number" min="0.01" step="any" inputmode="decimal" data-f="riskAmount" placeholder="例如 50；历史不确定就留空" value="${n.riskAmount??""}"></label>
+    <p class="note" style="margin:5px 0 0">这是开仓前计划最多承担的风险，不是实际亏损；请勿根据最终盈亏倒填。</p>
+  </div>
+  <div class="review-part">
+    <h4>结果对照</h4>
+    <div class="calc" data-calc></div>
+    <div data-afterbox><h4 style="margin-top:10px">提前离场后，核对原止盈 / 原止损哪个先触发</h4><div class="chips">${Object.entries(AFTER).map(([k,v])=>`<button type="button" class="cus" data-after="${k}" aria-pressed="${n.after===k}">${v}</button>`).join("")}</div>
+    <label class="verified-line"><input type="checkbox" data-check="afterVerified" ${n.afterVerified===true?"checked":""}> 已查历史走势，确认以上先后顺序（仅适用于先止盈/先止损）</label>
+    <p class="note" style="margin:5px 0 0">未核对则仅展示价位差，不会把“少拿利润”当成实际机会成本。核对也仅为手工复盘，不代表交易已自动回测。</p></div>
+  </div>
+</div></details>
+  <div class="edfoot"><span data-st>改动会自动保存</span><button type="button" class="btn ghost" data-del>删除这笔交易</button></div></div>`;
+}
+function allTags(){const s=new Set();S.trades.forEach(t=>(t.note?.tags||[]).forEach(g=>s.add(g)));return {custom:[...s].filter(g=>!BAD_TAGS.includes(g)&&!GOOD_TAGS.includes(g))}}
+
+const timers={};
+function bindEditor(id){
+  const ed=document.querySelector(`[data-ed="${CSS.escape(id)}"]`);if(!ed)return;
+  const t={id,...S.trades.get(id)};
+  const draft=()=>S.drafts[id]||(S.drafts[id]=JSON.parse(JSON.stringify(noteOf(t))));
+  const st=ed.querySelector("[data-st]");
+  const updCalc=()=>{
+    const c=ed.querySelector("[data-calc]"),n=draft(),p=planned(t,n),dp=mkInfo(t.market).dp;
+    const fmtN=v=>fmtPnl(Math.round(v*100)/100);
+    const rows=[`<div><b>实际已实现盈亏：</b><b class="num ${cls(t.pnl)}">${fmtN(t.pnl)}</b>${p.actualR!=null?`（${p.actualR>=0?"+":""}${p.actualR.toFixed(2)}R）`:"（未填风险金额，R 待算）"}</div>`];
+    if(p.tp!=null&&p.targetDist!=null){
+      if(p.targetDist>0){const achieved=pts(t),ratio=Math.round(achieved/p.targetDist*100);
+        rows.push(`<div>距原定止盈价的点数差：<b>${fmtP(p.targetDist-achieved,dp)} 点</b>（当前盈亏点数约为目标的 ${ratio}%）</div>`);
+      }else rows.push(`<div class="down">初始止盈价格方向不正确，请核对。</div>`);
+    }
+    if((p.tp!=null||p.sl!=null)&&!p.validPrices)rows.push(`<div class="down">请填入有效的初始止盈、初始止损（多单止损低于入场、止盈高于入场；空单相反）。</div>`);
+    if(p.validPrices){rows.push(`<div>计划盈亏比：<b>1 : ${p.ratio.toFixed(2)}</b>${p.amountOK?`　原计划止盈约 <b>${fmtN(p.risk*p.ratio)}</b>、止损约 <b>${fmtN(-p.risk)}</b>`:"　（填写初始风险金额后可估算金额）"}</div>`)}
+    if(p.status==="confirmed_by_user"){
+      rows.push(`<div class="plan-result"><div>你已手工核对：原计划先触发${n.after==="tp"?"止盈":"止损"}。理论结果 <b class="num ${cls(p.hypothetical)}">${fmtN(p.hypothetical)}</b></div><div>实际 − 原计划：<b class="num ${cls(p.delta)}">${fmtN(p.delta)}</b></div><small>对比假设原计划委托持续有效、按设定价格成交，不包含额外滑点、费用、保证金变化，也不能据此证明某种退出方式长期优越。</small></div>`);
+    }else rows.push(`<div class="note">原计划结果：<b>待核对</b>。请填写完整计划并核实平仓后先触发哪个价位，才会显示理论对照。</div>`);
+    if(n.after&&n.afterVerified!==true)rows.push(`<div class="note">已记录“${esc(AFTER[n.after]||n.after)}”，但尚未勾选核对，不能据此计算原计划结果。</div>`);
+    c.innerHTML=rows.join("");
+  };
+  updCalc();
+  const save=(delay)=>{clearTimeout(timers[id]);st.textContent="正在保存…";
+    timers[id]=setTimeout(async()=>{const n=draft();try{await putNote(id,{...n,tags:[...n.tags]});st.textContent="已保存"}catch(e){st.textContent="保存失败，再改一下会重试"}},delay)};
+  ed.addEventListener("click",async e=>{
+    const b=e.target.closest("button");if(!b)return;
+    const n=draft();
+    if(b.dataset.tag!=null){const g=b.dataset.tag;n.tags=n.tags.includes(g)?n.tags.filter(x=>x!==g):[...n.tags,g];b.setAttribute("aria-pressed",n.tags.includes(g));
+      updCalc();save(300)}
+    else if(b.dataset.after){n.after=n.after===b.dataset.after?"":b.dataset.after; n.afterVerified=false;
+      ed.querySelector('[data-check="afterVerified"]').checked=!!n.afterVerified;
+      ed.querySelectorAll("[data-after]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.after===n.after));updCalc();save(300)}
+    else if(b.dataset.exec){n.execution=n.execution===b.dataset.exec?"":b.dataset.exec;
+      ed.querySelectorAll("[data-exec]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.exec===n.execution));save(300)}
+    else if(b.hasAttribute("data-addtag")){const g=(prompt("新标签名称（比如：数据公布前开仓）")||"").trim().slice(0,20);if(!g)return;if(!n.tags.includes(g))n.tags.push(g);await flush(id);renderList()}
+    else if(b.hasAttribute("data-del")){if(!confirm("删除这笔交易和它的备注？删除后无法恢复。"))return;delete S.drafts[id];S.openId=null;try{await delTrade(id);toast("已删除")}catch(e){toast("删除失败，请重试")}}
+  });
+  ed.addEventListener("change",e=>{if(e.target.dataset.check!=="afterVerified")return;const n=draft();
+    if(e.target.checked&&n.after!=="tp"&&n.after!=="sl"){
+      e.target.checked=false;toast("请先选择后续先触发止盈或止损");return;
+    }
+    n.afterVerified=e.target.checked;updCalc();save(300);
+  });
+  ed.addEventListener("input",e=>{const f=e.target.dataset.f;if(!f)return;const n=draft();
+    if(["tp","sl","riskAmount"].includes(f)){
+      n[f]=e.target.value===""?null:+e.target.value;
+      // Invalidate prior path confirmation if the original plan prices are changed.
+      if(f==="tp"||f==="sl"){n.afterVerified=false;ed.querySelector('[data-check="afterVerified"]').checked=false;}
+      updCalc();
+    }else n[f]=e.target.value;save(900)});
+}
+async function flush(id){
+  if(!id||!S.drafts[id])return;clearTimeout(timers[id]);
+  const n=S.drafts[id];try{await putNote(id,{...n,tags:[...n.tags]})}catch(e){}
+  delete S.drafts[id];
+}
+
+/* ---------- library ---------- */
+function renderLib(){
+  const list=filtered(),stats=tagStats(list),box=$("#lib");
+  if(!stats.length){box.innerHTML=`<div class="emptybox">错误库是空的。去「交易记录」里点开交易打标签，每个标签会在这里汇总成一张卡：犯了几次、花了多少钱、你给自己定的规则。</div>`;return}
+  box.innerHTML=stats.map(s=>{
+    const good=GOOD_TAGS.includes(s.tag);
+    let meta=`合计 <span class="num ${cls(s.pnl)}">${fmtPnl(s.pnl)}</span>，胜率 ${Math.round(s.trades.filter(t=>t.pnl>0).length/s.trades.length*100)}%`;
+    if(s.tag===EARLY_TP&&s.verified)meta+=`，已核对 ${s.verified} 笔（先止盈 ${s.toTp}、先止损 ${s.toSl}）`;
+    const items=[...s.trades].sort((a,b)=>b.closeTime<a.closeTime?-1:1).map(t=>{const n=noteOf(t);
+      return `<li>${n.lesson.trim()?`<div class="rule">${esc(n.lesson)}</div>`:""}${n.text.trim()?`<div>${esc(n.text)}</div>`:""}<button data-jump="${esc(t.id)}">${md(t.openTime)} ${timezoneBadge(t)} ${esc(mkInfo(t.market).name)} ${t.side==="long"?"做多":"做空"} <span class="num">${fmtPnl(t.pnl)}</span></button></li>`}).join("");
+    return `<div class="lcard"><div class="h"><span class="name" style="color:${good?"var(--up)":"inherit"}">${esc(s.tag)}</span><span class="cnt">${s.trades.length}<small style="font-size:13px;color:var(--muted);font-family:var(--cjk)"> 次</small></span></div><div class="meta">${meta}</div><ul>${items}</ul></div>`;
+  }).join("");
+}
+
+/* ---------- import ---------- */
+function marketCode(name){const u=String(name||"").toUpperCase();if(/XAU|GOLD|黄金/.test(u))return"XAU";if(/A50/.test(u))return"A50";if(/纳斯达克\s*100|US\s*TECH\s*100/.test(u))return"USTECH100CFD";return u.replace(/[^A-Z0-9]/g,"").slice(0,12)||"OTHER"}
+const pad=n=>String(n).padStart(2,"0");
+function parseTime(v){
+  if(v instanceof Date&&!isNaN(v))return `${v.getFullYear()}-${pad(v.getMonth()+1)}-${pad(v.getDate())} ${pad(v.getHours())}:${pad(v.getMinutes())}:${pad(v.getSeconds())}`;
+  if(typeof v==="number"&&v>20000){const d=new Date(Math.round((v-25569)*864e5));return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`}
+  const s=String(v||"").trim();let m;
+  if(m=s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?/))return `${m[3]}-${pad(m[2])}-${pad(m[1])} ${pad(m[4])}:${m[5]}:${m[6]||"00"}`;
+  if(m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?/))return `${m[1]}-${pad(m[2])}-${pad(m[3])} ${pad(m[4])}:${m[5]}:${m[6]||"00"}`;
+  return null;
+}
+const toNum=v=>{if(typeof v==="number")return v;const s=String(v??"").replace(/[,\s]/g,"").replace("−","-");return /^-?\d+(\.\d+)?$/.test(s)?+s:null};
+const tid=(code,ot)=>`${code}-${ot.replace(/\D/g,"")}`;
+
+function parseBroker(aoa){
+  const hi=aoa.findIndex(r=>r&&r.some(c=>/market|symbol|品种/i.test(String(c))));
+  if(hi<0)throw new Error("没找到表头：文件里需要有 Market、Date/Time、Position、Position Price、Realised P&L、Trade Date 这几列。");
+  const H=aoa[hi].map(c=>String(c||"").trim());
+  const find=re=>H.findIndex(h=>re.test(h));
+  const col={m:find(/market|symbol|品种/i),t:find(/date\s*\/\s*time|^time$|成交时间/i),p:find(/^position$|方向/i),pr:find(/price|价格/i),pl:find(/p&l|pnl|profit|盈亏/i),td:find(/trade\s*date|平仓时间/i)};
+  if(Object.values(col).some(i=>i<0))throw new Error("表头不完整，缺少："+Object.entries(col).filter(([k,i])=>i<0).map(([k])=>({m:"Market",t:"Date/Time",p:"Position",pr:"Position Price",pl:"Realised P&L",td:"Trade Date"})[k]).join("、"));
+  const groups=new Map();
+  for(const r of aoa.slice(hi+1)){if(!r||!r[col.m])continue;const k=r[col.m]+"|"+String(r[col.td]);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r)}
+  const out=[];let skipped=0;
+  for(const g of groups.values()){
+    const close=g.find(r=>toNum(r[col.pl])!=null),open=g.find(r=>r!==close&&toNum(r[col.pl])==null);
+    if(!close||!open){skipped+=g.length;continue}
+    const ot=parseTime(open[col.t]),ct=parseTime(close[col.t]);const posM=String(open[col.p]).match(/(buy|sell|买|卖)\s*([\d.]+)?/i);
+    if(!ot||!ct||!posM){skipped+=g.length;continue}
+    const code=marketCode(open[col.m]);
+    // Keep the original source-wall-clock ID, matching historical records.
+    out.push({id:tid(code,ot),body:toBeijingTrade({market:code,marketName:String(open[col.m]),side:/buy|买/i.test(posM[1])?"long":"short",qty:posM[2]?+posM[2]:1,
+      openTime:ot,closeTime:ct,openPrice:toNum(open[col.pr]),closePrice:toNum(close[col.pr]),pnl:toNum(close[col.pl]),tz:"洛杉矶",source:"import",note:emptyNote()},BROKER_SOURCE_TIME_ZONE)});
+  }
+  return {rows:out.sort((a,b)=>b.body.openTime<a.body.openTime?-1:1),skipped};
+}
+/* ---------- MT5 XLSX: closed positions, orders and deals ---------- */
+// 来源：LV 于 2026-10-23 确认该服务器夏令时为 UTC+3；旧嘉盛记录由独立 Intl 迁移转北京；MT5 单独转北京时间 UTC+8。
+// 服务器夏令时（美国规则）：每年 3 月第二个周日 02:00 至 11 月第一个周日 02:00 为夏令时，表中偏移为夏令时偏移，冬令时为该值减 1。
+// 2026 年切换日：夏令时开始 3 月 8 日，结束 11 月 1 日。11 月 1 日之后的交易此前被误按 +5 小时换算，正确为 +6 小时。
+const MT5_SERVER_UTC_OFFSETS={"FOREX.comGlobalCN-Live 534":3};
+const MT5_BEIJING_UTC_OFFSET=8; // 夏令时转换偏移 = 8 - 3 = +5 小时；冬令时 = 8 - 2 = +6 小时
+function nthSundayOfMonth(year,month0,n){const first=new Date(Date.UTC(year,month0,1));return 1+((7-first.getUTCDay())%7)+(n-1)*7}
+function mt5ServerOffset(server,raw){
+  const dst=MT5_SERVER_UTC_OFFSETS[server];
+  if(!Number.isFinite(dst))return NaN;
+  const m=/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/.exec(raw||"");
+  if(!m)return dst;
+  const y=+m[1],mo=+m[2],d=+m[3],h=+m[4];
+  const startDay=nthSundayOfMonth(y,2,2),endDay=nthSundayOfMonth(y,10,1);
+  const afterStart=mo>3||(mo===3&&(d>startDay||(d===startDay&&h>=2)));
+  const beforeEnd=mo<11||(mo===11&&(d<endDay||(d===endDay&&h<2)));
+  return (afterStart&&beforeEnd)?dst:dst-1;
+}
+// 修复已入库的 MT5 交易时间：2026-11-01 夏令时切换后，旧版仍按 +5 小时换算，导致 11 月交易显示早 1 小时。
+// 仅重算经纪商原始时间派生的 openTime/closeTime 与偏移字段，不动任何复盘笔记与计划字段；已正确的交易不动；每次启动自检，幂等。
+function repairMt5DstTimes(){
+  let fixed=0;
+  const toBj=(raw,off)=>{const d=new Date(raw.replace(" ","T")+"Z");if(!Number.isFinite(+d))return null;return new Date(+d+(MT5_BEIJING_UTC_OFFSET-off)*3600000).toISOString().slice(0,19).replace("T"," ")};
+  for(const t of S.trades.values()){
+    const m=t&&t.mt5;
+    if(!m||!m.open_time_raw)continue;
+    const openOff=mt5ServerOffset(m.server,m.open_time_raw);
+    if(!Number.isFinite(openOff)||m.server_utc_offset===openOff)continue;
+    const nt=toBj(m.open_time_raw,openOff);
+    if(!nt)continue;
+    t.openTime=nt;
+    if(m.close_time_raw){
+      const closeOff=mt5ServerOffset(m.server,m.close_time_raw);
+      const ct=toBj(m.close_time_raw,closeOff);
+      if(ct)t.closeTime=ct;
+    }
+    m.server_utc_offset=openOff;
+    m.beijing_offset_hours=MT5_BEIJING_UTC_OFFSET-openOff;
+    fixed++;
+  }
+  if(fixed)lsSave();
+  return fixed;
+}
+// 已确认的 EA 注释前缀；无法识别的普通单不自动填写计划 SL/TP。
+const MT5_EA_COMMENT=/^SCE2(?:\s|$)/i;
+function isMT5(aoa){return aoa.some(r=>r.some(c=>/^(持仓|Positions)$/.test(String(c).trim())))}
+function parseMT5(aoa){
+  const str=v=>String(v??"").trim();
+  const fail=msg=>{throw new Error("MT5："+msg)};
+  const ticket=v=>{if(typeof v==='number'&&!Number.isSafeInteger(v))fail('票号超出安全整数范围，请使用文本票号');const s=str(v);if(!/^\d+$/.test(s))fail('缺失或无效票号');return s};
+  const section=(name,labels)=>{
+    const start=aoa.findIndex(r=>r.filter(c=>str(c)).length===1&&name.test(str(r.find(c=>str(c)))));
+    if(start<0)fail('缺少持仓、订单或成交段');
+    const h=aoa[start+1].map(str),cols={};
+    for(const [k,[re,n=0]] of Object.entries(labels)){cols[k]=h.map((v,i)=>re.test(v)?i:-1).filter(i=>i>=0)[n];if(cols[k]===undefined)fail('缺少表头 '+k)}
+    const rows=[];
+    for(const r of aoa.slice(start+2)){if(!parseTime(r[cols.time]))break;rows.push(Object.fromEntries(Object.entries(cols).map(([k,i])=>[k,r[i]])))}
+    return rows;
+  };
+  const ar=aoa.find(r=>r.some(c=>/^(账户|Account)\s*[:：]?$/.test(str(c))));
+  const info=ar&&ar.map(str).join(' ').match(/(\d+)\s*\(([^,]+),\s*([^,]+),/);
+  if(!info)fail('无法识别账户、币种和服务器');
+  const [,account,currency,serverRaw]=info,server=serverRaw.trim();
+  const dstOffset=MT5_SERVER_UTC_OFFSETS[server];if(!Number.isFinite(dstOffset))fail('服务器 '+server+' 的时区未配置，请先核实并设置 MT5_SERVER_UTC_OFFSETS');
+  const bj=v=>{const s=parseTime(v);if(!s)fail('无效时间');const offset=mt5ServerOffset(server,s);const d=new Date(s.replace(' ','T')+'Z');if(!Number.isFinite(+d))fail('无效时间');return new Date(+d+(MT5_BEIJING_UTC_OFFSET-offset)*3600000).toISOString().slice(0,19).replace('T',' ')};
+  const base={time:[/^(时间|Time|开价时间|Open Time)$/],symbol:[/^(交易品种|Symbol)$/],type:[/^(类型|Type)$/],qty:[/^(交易量|Volume)$/],price:[/^(价位|Price)$/]};
+  const positions=section(/^(持仓|Positions)$/,{...base,id:[/^(持仓|Position)$/],sl:[/^(止损|S \/ L|S\/L)$/],tp:[/^(止盈|T \/ P|T\/P)$/],closeTime:[/^(时间|Time)$/,1],closePrice:[/^(价位|Price)$/,1],commission:[/^(佣金|Commission)$/],swap:[/^(库存费|Swap)$/],profit:[/^(盈利|Profit)$/]});
+  const orders=section(/^(订单|Orders)$/,{...base,id:[/^(订单|Order)$/],sl:[/^(止损|S \/ L|S\/L)$/],tp:[/^(止盈|T \/ P|T\/P)$/],comment:[/^(注释|Comment)$/]});
+  const deals=section(/^(成交|Deals)$/,{...base,id:[/^(成交|Deal)$/],entry:[/^(趋势|Direction|Entry)$/],order:[/^(订单|Order)$/],commission:[/^(佣金|Commission)$/],fee:[/^(费用|Fee)$/],swap:[/^(库存费|Swap)$/],profit:[/^(盈利|Profit)$/],comment:[/^(注释|Comment)$/]});
+  const cashflows=deals.filter(d=>!/^(buy|sell)$/i.test(str(d.type))).length;
+  const trading=deals.filter(d=>/^(buy|sell)$/i.test(str(d.type)));
+  const eq=(a,b)=>toNum(a)!=null&&toNum(b)!=null&&Math.abs(toNum(a)-toNum(b))<1e-8;
+  const candidates=positions.map(p=>({p,entry:trading.filter(d=>str(d.entry)==='in'&&str(d.order)===str(p.id)&&str(d.symbol)===str(p.symbol)&&str(d.type)===str(p.type)&&parseTime(d.time)===parseTime(p.time)&&eq(d.qty,p.qty)&&eq(d.price,p.price)),exit:trading.filter(d=>str(d.entry)==='out'&&str(d.symbol)===str(p.symbol)&&str(d.type)===(str(p.type)==='buy'?'sell':'buy')&&parseTime(d.time)===parseTime(p.closeTime)&&eq(d.qty,p.qty)&&eq(d.price,p.closePrice))}));
+  const counts=new Map();for(const c of candidates)for(const d of [...c.entry,...c.exit])counts.set(d,(counts.get(d)||0)+1);
+  const rows=[],warnings=[],seen=new Set();
+  for(const {p,entry,exit} of candidates){
+    const id=ticket(p.id);
+    const skip=reason=>warnings.push('持仓 '+id+' 未导入：'+reason);
+    if(seen.has(id)){fail('持仓号重复（可能部分平仓），请导出含 DEAL_POSITION_ID 的完整明细')}seen.add(id);
+    if(!parseTime(p.closeTime)||bj(p.closeTime)<bj(p.time)||!(toNum(p.qty)>0)||!/^(buy|sell)$/.test(str(p.type))){skip('不是完整有效的已平仓交易');continue}
+    if(entry.length!==1||exit.length!==1||counts.get(entry[0])!==1||counts.get(exit[0])!==1){skip('成交无法唯一匹配，拆单/部分平仓需 DEAL_POSITION_ID');continue}
+    const ds=[entry[0],exit[0]],os=ds.map(d=>orders.filter(o=>str(o.id)===str(d.order)&&str(o.symbol)===str(p.symbol)&&str(o.type)===str(d.type)));
+    if(os.some(a=>a.length!==1)||trading.some(d=>ds.some(x=>str(x.order)===str(d.order))&&!ds.includes(d))){skip('订单缺失、重复或存在拆分成交');continue}
+    const sum=k=>ds.reduce((s,d)=>{const n=toNum(d[k]);if(n==null)fail('持仓 '+id+' 缺少费用/盈利 '+k);return s+n},0);
+    const grossPnl=sum('profit'),commission=sum('commission'),fee=sum('fee'),swap=sum('swap');
+    if(!eq(grossPnl,p.profit)||!eq(commission,p.commission)||!eq(swap,p.swap)){skip('持仓与成交的盈亏/费用核对不一致');continue}
+    const comment=str(os[0][0].comment)||str(entry[0].comment),ea=MT5_EA_COMMENT.test(comment);
+    const plan=v=>toNum(v)>0?toNum(v):null;
+    rows.push({id:'MT5:'+encodeURIComponent(server)+':'+account+':'+id,body:{market:marketCode(p.symbol),marketName:str(p.symbol),side:str(p.type)==='buy'?'long':'short',qty:toNum(p.qty),openTime:bj(p.time),closeTime:bj(p.closeTime),openPrice:toNum(p.price),closePrice:toNum(p.closePrice),pnl:Number((grossPnl+commission+fee+swap).toFixed(10)),source:'mt5',tz:'北京',note:{...emptyNote(),sl:ea?plan(os[0][0].sl):null,tp:ea?plan(os[0][0].tp):null},mt5:{server,account,currency:currency.trim(),position_ticket:id,symbol_raw:str(p.symbol),open_time_raw:parseTime(p.time),close_time_raw:parseTime(p.closeTime),server_utc_offset:mt5ServerOffset(server,parseTime(p.time)),beijing_offset_hours:MT5_BEIJING_UTC_OFFSET-mt5ServerOffset(server,parseTime(p.time)),gross_pnl:grossPnl,commission,fee,swap,reported_sl:toNum(p.sl),reported_tp:toNum(p.tp),entry_deal_ids:[ticket(entry[0].id)],exit_deal_ids:[ticket(exit[0].id)],order_ids:ds.map(d=>ticket(d.order)),entry_comment:comment,plan_source:ea?'confirmed EA prefix SCE2 / opening order':null}}});
+  }
+  return {rows,skipped:warnings.length,warnings,format:'MT5',cashflows};
+}
+function parseTradeFile(aoa){return isMT5(aoa)?parseMT5(aoa):parseBroker(aoa)}
+
+function parseBackup(obj){
+  const arr=Array.isArray(obj)?obj:obj.trades;if(!Array.isArray(arr))throw new Error("这不是复盘本的备份文件。");
+  return {rows:arr.filter(t=>t&&t.id&&t.openTime).map(({id,...b})=>({id,body:{...withTradeTz(b),note:{...emptyNote(),...(b.note||{})}}})),skipped:0,backup:true};
+}
+let pendingImport=null;
+$("#fileIn").addEventListener("change",async e=>{
+  const f=e.target.files[0],out=$("#impOut");if(!f)return;out.innerHTML=`<div class="note">正在读取…</div>`;
+  try{
+    let res;
+    if(/\.json$/i.test(f.name))res=parseBackup(JSON.parse(await f.text()));
+    else{
+      out.innerHTML=`<div class="note">正在加载 Excel 解析组件…</div>`;
+      await ensureXLSX();
+      out.innerHTML=`<div class="note">正在读取交易记录…</div>`;
+      const wb=XLSX.read(await f.arrayBuffer(),{type:"array",cellDates:false});
+      res=parseTradeFile(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:""}))}
+    const fresh=res.rows.filter(r=>!S.trades.has(r.id));
+    const noteFill=res.backup?res.rows.filter(r=>S.trades.has(r.id)&&!reviewed(S.trades.get(r.id))&&reviewed(r.body)):[];
+    const different=res.rows.filter(r=>S.trades.has(r.id)&&S.trades.get(r.id).market!==r.body.market);
+    const ambiguous=res.rows.filter(r=>/[\u3400-\u9fff]/.test(r.body.marketName||"")&&/^\d+$/.test(r.body.market));
+    pendingImport={fresh,noteFill,different,ambiguous};
+    out.innerHTML=`${res.format?`<div class="note">已识别 MT5；时间已转北京时间。已排除 ${res.cashflows} 条非交易流水。</div>`:""}${(res.warnings||[]).map(w=>`<div class="err">${esc(w)}</div>`).join("")}<div>${res.rows.length} 笔交易，其中 <b>${fresh.length}</b> 笔是新的${res.rows.length-fresh.length?`，${res.rows.length-fresh.length} 笔已存在会跳过`:""}${noteFill.length?`；另有 ${noteFill.length} 笔会补回备注`:""}${res.skipped?`。有 ${res.skipped} 行没配对上开平仓，没有导入`:""}。</div>
+      <div class="prev"><table>${res.rows.slice(0,60).map(r=>{const b=r.body,i=mkInfo(b.market),old=S.trades.has(r.id);return `<tr class="${old?"old":""}"><td style="color:${i.color};font-weight:700">${esc(i.name)}</td><td>${b.side==="long"?"多":"空"}</td><td>${md(b.openTime)} ${timezoneBadge(b)}</td><td class="num">${fmtP(b.openPrice,i.dp)}→${fmtP(b.closePrice,i.dp)}</td><td class="num ${cls(b.pnl)}">${fmtPnl(b.pnl)}</td><td>${old?"已有":"新"}</td></tr>`}).join("")}</table></div>
+      ${ambiguous.map((r,i)=>`<label class="field">必须确认映射：${esc(r.id)} · ${esc(r.body.marketName)}<input data-mapping="${i}" placeholder="输入含字母的品种代码，例如 USTECH100CFD"></label>`).join("")}
+      ${different.map((r,i)=>`<label class="field"><input type="checkbox" data-classification="${i}">已有但分类不同：${esc(r.id)} · ${esc(S.trades.get(r.id).market)} → ${esc(r.body.market)}（仅更新分类，另行备份确认）</label>`).join("")}
+      <button class="btn primary" id="impGo" ${fresh.length||noteFill.length||different.length?"":"disabled"}>${fresh.length?`加入 ${fresh.length} 笔新交易`:noteFill.length?"补回备注":different.length?"确认分类更新":"没有需要加入的交易"}</button>`;
+  }catch(err){out.innerHTML=`<div class="err">${esc(err.message||"文件读不出来，确认是券商导出的交易历史。")}</div>`;pendingImport=null}
+});
+$("#impOut").addEventListener("click",async e=>{
+  if(e.target.id!=="impGo"||!pendingImport)return;const b=e.target;b.disabled=true;b.textContent="正在加入…";
+  const {fresh,noteFill,different,ambiguous}=pendingImport;
+  for(let i=0;i<ambiguous.length;i++){const code=$("#impOut").querySelector(`[data-mapping="${i}"]`).value.trim().toUpperCase();if(!/^(?=.*[A-Z])[A-Z0-9]{1,24}$/.test(code)){toast("请为未知中文品种确认有效映射，不能使用纯数字");b.disabled=false;b.textContent="确认导入";return}ambiguous[i].body.market=code}
+  const selected=different.filter((r,i)=>$("#impOut").querySelector(`[data-classification="${i}"]`).checked);
+  marketPause++;clearTimeout(S.fileSaveTimer);
+  const r=await writeMany(fresh);
+  for(const x of noteFill){try{await putNote(x.id,x.body.note)}catch(e){}}
+  $("#dImport").close();
+  for(const x of selected)await updateTradeMarket(x.id,x.body.market,x.body.marketName,"import-classification");
+  marketPause--;await checkMarketMigration();
+  pendingImport=null;$("#fileIn").value="";$("#impOut").innerHTML="";
+  const quota=r.errs.some(e=>e&&e.code==="quota_exceeded");
+  const fileSaved=S.fileHandle?await saveDataFile(true):false;
+  toast(r.errs.length?(quota?`存储已满，${r.errs.length} 笔没加上，删掉一些旧交易再试`:`加入 ${r.done} 笔，${r.errs.length} 笔失败，再导入一次会补上`):`已加入 ${r.done} 笔新交易${fileSaved?"，并写入数据文件":""}`);
+});
+
+/* ---------- manual add ---------- */
+$("#addGo").addEventListener("click",async()=>{
+  const f=$("#addForm"),v=k=>f.elements[k].value,err=$("#addErr");err.textContent="";
+  const ot=v("ot")?parseTime(v("ot").replace("T"," ")+(v("ot").length===16?":00":"")):null,ct=v("ct")?parseTime(v("ct").replace("T"," ")+(v("ct").length===16?":00":"")):null;
+  const op=toNum(v("op")),cp=toNum(v("cp")),qty=toNum(v("qty"))||1;
+  if(!ot||!ct||op==null||cp==null){err.textContent="开平仓时间和价格都要填。";return}
+  if(ct<ot){err.textContent="平仓时间早于开仓时间，检查一下。";return}
+  const side=v("side"),code=v("market");let pnl=toNum(v("pnl"));
+  if(pnl==null)pnl=+(((side==="long"?cp-op:op-cp)*qty).toFixed(2));
+  const id=tid(code,ot);if(S.trades.has(id)){err.textContent="同一时间已经有一笔这个品种的交易了。";return}
+  try{await putTrade(id,{market:code,marketName:code==="XAU"?"XAU/USD":"China A50 CFD",side,qty,openTime:ot,closeTime:ct,openPrice:op,closePrice:cp,pnl,tz:v("tz"),source:"manual",note:emptyNote()});
+    $("#dAdd").close();f.reset();f.elements.qty.value=1;S.openId=id;toast("已添加，可以直接写复盘")}
+  catch(e){err.textContent=e&&e.code==="quota_exceeded"?"存储已满，删掉一些旧交易再添加。":"添加失败，请重试。"}
+});
+
+/* ---------- export ---------- */
+$("#bExport").addEventListener("click",async()=>{
+  const d=new Date();
+  const data=JSON.stringify({app:"fupan",exportedAt:d.toISOString(),trades:[...S.trades.entries()].map(([id,t])=>({id,...withTradeTz(t)}))},null,1);
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));
+  a.download=`复盘本备份-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.json`;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast("备份已下载")
+});
+
+/* ---------- snapshot as single HTML ---------- */
+async function exportSelfContainedHTML(){
+  // Browser security prevents silently overwriting the HTML file currently open.
+  // Export a fresh, standalone snapshot with latest data embedded in its script.
+  if(S.openId)await flush(S.openId);
+  const copy=document.documentElement.cloneNode(true);
+  for(const external of copy.querySelectorAll('script[src]'))external.remove();
+  const scripts=[...copy.querySelectorAll('script:not([src])')];
+  const main=scripts.find(s=>s.textContent.includes('const SEED='));
+  if(!main)throw new Error('没有找到交易数据代码');
+  const latest=JSON.stringify(normalizedTrades()).replace(/</g,'\\u003c');
+  const stamp=new Date();
+  const revision=stamp.toISOString().replace(/\D/g,'').slice(0,14)+'-'+S.trades.size;
+  let code=main.textContent;
+  const pos=code.indexOf('const SEED=');
+  const end=code.indexOf('\nconst SEED_REV=',pos);
+  if(pos<0||end<0)throw new Error('找不到嵌入数据位置');
+  code=code.slice(0,pos)+'const SEED='+latest+';'+code.slice(end);
+  code=code.replace(/const SEED_REV="[^"]*";/,'const SEED_REV="'+revision+'";');
+  main.textContent=code;
+  // Strip transient runtime state; original boot() reconstructs these regions.
+  for(const sel of ['#mkSeg','#memory','#stats','#list','#lib','#impOut','#modeNote','#fileState']){
+    const el=copy.querySelector(sel);if(el)el.innerHTML='';
+  }
+  for(const d of copy.querySelectorAll('dialog'))d.removeAttribute('open');
+  const list=copy.querySelector('#vList'),lib=copy.querySelector('#vLib');
+  list?.classList.remove('hidden');lib?.classList.add('hidden');
+  for(const b of copy.querySelectorAll('#viewSeg button'))b.setAttribute('aria-pressed',b.dataset.v==='list'?'true':'false');
+  for(const b of copy.querySelectorAll('#sideSeg button'))b.setAttribute('aria-pressed',b.dataset.side==='ALL'?'true':'false');
+  const fileSave=copy.querySelector('#bSaveData');fileSave?.classList.add('hidden');
+  const exportBtn=copy.querySelector('#bExport');exportBtn?.classList.add('hidden');
+  const toastCopy=copy.querySelector('#toast');if(toastCopy){toastCopy.textContent='';toastCopy.classList.remove('on')}
+  const html='<!doctype html>\n'+copy.outerHTML;
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;
+  a.download='复盘本-含数据-'+stamp.getFullYear()+pad(stamp.getMonth()+1)+pad(stamp.getDate())+'.html';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1500);
+  toast('已下载包含 '+S.trades.size+' 笔交易的 HTML 快照');
+}
+$('#bExportHTML').addEventListener('click',()=>exportSelfContainedHTML().catch(e=>toast('导出失败：'+(e.message||'未知错误'))));
+
+/* ---------- events ---------- */
+$("#sideSeg").addEventListener("click",async e=>{const b=e.target.closest("[data-side]");if(!b)return;await flush(S.openId);S.side=b.dataset.side;S.openId=null;render()});
+$("#mkSeg").addEventListener("click",async e=>{const b=e.target.closest("[data-mk]");if(!b)return;await flush(S.openId);S.mk=b.dataset.mk;S.openId=null;render()});
+$("#viewSeg").addEventListener("click",async e=>{const b=e.target.closest("[data-v]");if(!b)return;await flush(S.openId);S.view=b.dataset.v;
+  document.querySelectorAll("#viewSeg button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  $("#vList").classList.toggle("hidden",S.view!=="list");$("#vLib").classList.toggle("hidden",S.view!=="lib");render()});
+$("#onlyTodo").addEventListener("change",async e=>{await flush(S.openId);S.onlyTodo=e.target.checked;renderList()});
+$("#list").addEventListener("click",async e=>{const b=e.target.closest("[data-open]");if(!b)return;const id=b.dataset.open;
+  const prev=S.openId;await flush(prev);S.openId=isDesktopList()?id:(prev===id?null:id);renderList();renderTop()});
+$("#lib").addEventListener("click",async e=>{const b=e.target.closest("[data-jump]");if(!b)return;
+  S.openId=b.dataset.jump;S.onlyTodo=false;$("#onlyTodo").checked=false;$("#viewSeg [data-v=list]").click();
+  setTimeout(()=>{const el=document.getElementById("t-"+S.openId);if(el)el.scrollIntoView({block:"center"})},60)});
+$("#bBindData").addEventListener("click",async()=>{
+  if(S.fileHandle&&!(await handlePermission(S.fileHandle,true)))return;
+  if(S.fileHandle&&await handlePermission(S.fileHandle,false)){
+    if(confirm(`当前已连接 ${S.fileName}。\n\n点“确定”选择另一个数据文件；点“取消”继续使用当前文件。`))await bindDataFile(true);
+    else{if(await saveDataFile(false))toast("当前数据已保存")};
+  }else await bindDataFile(false);
+});
+const marketCheckButton=document.getElementById("bMarketCheck")||document.createElement("button");marketCheckButton.id="bMarketCheck";marketCheckButton.className="btn";marketCheckButton.textContent="重新检查历史品种分类";
+$("#bSaveData").parentNode.appendChild(marketCheckButton);
+marketCheckButton.onclick=async()=>{if(await checkMarketMigration()){if(S.fileHandle)await saveDataFile(false);toast("历史分类检查完成，冲突记录请核对单笔分类")}};
+$("#bSaveData").addEventListener("click",async()=>{if(await saveDataFile(false))toast("已保存到 "+S.fileName)});
+$("#bImport").addEventListener("click",()=>$("#dImport").showModal());
+$("#bAdd").addEventListener("click",()=>$("#dAdd").showModal());
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog").close()));
+const listMedia=window.matchMedia?window.matchMedia("(min-width:900px)"):null;
+if(listMedia){const rerenderLayout=async()=>{await flush(S.openId);if(S.view==="list")renderList()};if(listMedia.addEventListener)listMedia.addEventListener("change",rerenderLayout);else if(listMedia.addListener)listMedia.addListener(rerenderLayout)}
+window.addEventListener("pagehide",()=>{if(S.openId)flush(S.openId)});
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),2600)}
+
+boot().catch(err=>{console.error(err);bootStage("加载遇到问题，正在进入复盘本");setTimeout(bootDone,500);toast("启动时有一项加载失败，已使用本地数据继续")});
+})();
+</script>
+
+
+</body></html>

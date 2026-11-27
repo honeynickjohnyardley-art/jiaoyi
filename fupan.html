@@ -394,8 +394,11 @@ const SEED_REV="20261116065615-49";
 const RELEASE_TRADE_REV="20261116065615-49";
 const RELEASE_TRADES={
   "A50-20261124105200":{"market":"A50","marketName":"A50指数期货 CN2612.SG","side":"short","qty":1,"openTime":"2026-11-24 10:52:00","closeTime":"2026-11-24 11:04:34","openPrice":12660,"closePrice":12628,"pnl":27.8,"source":"manual","tz":"北京","note":{"tags":[],"text":"富途 CN2612.SG；开平仓流程测试。毛利 32.00 美元，开仓和平仓费用各 2.10 美元，净利 27.80 美元。","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false}},
-  "A50-20261127133820":{"market":"A50","marketName":"A50指数期货 CN2612.SG","side":"short","qty":1,"openTime":"2026-11-27 13:38:20","closeTime":"2026-11-27 13:40:44","openPrice":12905,"closePrice":12943,"pnl":-42.2,"source":"manual","tz":"北京","note":{"tags":[],"text":"富途 CN2612.SG；毛亏 38.00 美元，开仓和平仓费用各 2.10 美元，净亏 42.20 美元。\n\n没等到收线前，就提前开仓了。","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false}}
+  "A50-20261127133820":{"market":"A50","marketName":"A50指数期货 CN2612.SG","side":"short","qty":1,"openTime":"2026-11-27 13:38:20","closeTime":"2026-11-27 13:40:44","openPrice":12905,"closePrice":12943,"pnl":-42.2,"source":"manual","tz":"北京","note":{"tags":[],"text":"富途 CN2612.SG；毛亏 38.00 美元，开仓和平仓费用各 2.10 美元，净亏 42.20 美元。\n\n没等到收线前，就提前开仓了。","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false}},
+  "A50-20261119183915":{"market":"A50","marketName":"China A50 CFD","side":"long","qty":1,"openTime":"2026-11-20 10:39:15","closeTime":"2026-11-20 11:01:13","openPrice":12550,"closePrice":12500,"pnl":-50,"source":"import","tz":"北京","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false}},
+  "USTECH100CFD-20261118180829":{"market":"USTECH100CFD","marketName":"US Tech 100 CFD","side":"short","qty":0.1,"openTime":"2026-11-19 10:08:29","closeTime":"2026-11-19 14:45:25","openPrice":27357.4,"closePrice":27558.2,"pnl":-20.08,"source":"import","tz":"北京","note":{"tags":[],"text":"","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false}}
 };
+const RELEASE_EXPORT_TIME_ALIASES={"A50-20261119183915":["2026-11-20 12:39:15","2026-11-20 13:01:13"],"USTECH100CFD-20261118180829":["2026-11-19 12:08:29","2026-11-19 16:45:25"]};
 const S={ready:false,trades:new Map(),mk:"ALL",side:"ALL",view:"list",onlyTodo:false,openId:null,drafts:{},mode:"local",db:null,dl:null,
   fileHandle:null,fileName:"",fileSaveTimer:null,fileSaving:false,fileDirty:false,curveView:null};
 
@@ -451,7 +454,9 @@ function applyReleaseTrades(){
     const key="fupan-release-applied-"+id;
     try{
       if(localStorage.getItem(key)==="yes")continue;
-      const match=[...S.trades.values()].some(t=>sameReleaseFill(t,r));
+      const alias=RELEASE_EXPORT_TIME_ALIASES[id];
+      const match=[...S.trades.values()].some(t=>sameReleaseFill(t,r)||
+        (alias&&+t.pnl===r.pnl&&sameReleaseFill(t,{...r,openTime:alias[0],closeTime:alias[1]})));
       if(match||S.trades.has(id)){localStorage.setItem(key,"yes");continue}
       S.trades.set(id,r);added=true;
       if(lsSave(S.trades,false)){try{localStorage.setItem(key,"yes")}catch(e){}}

@@ -394,7 +394,7 @@ const SEED_REV="20261116065615-49";
 const RELEASE_TRADE_REV="20261116065615-49";
 const RELEASE_TRADES={
   "A50-20261124105200":{"market":"A50","marketName":"A50指数期货 CN2612.SG","side":"short","qty":1,"openTime":"2026-11-24 10:52:00","closeTime":"2026-11-24 11:04:34","openPrice":12660,"closePrice":12628,"pnl":27.8,"source":"manual","tz":"北京","note":{"tags":[],"text":"富途 CN2612.SG；开平仓流程测试。毛利 32.00 美元，开仓和平仓费用各 2.10 美元，净利 27.80 美元。","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false}},
-  "A50-20261127133820":{"market":"A50","marketName":"A50指数期货 CN2612.SG","side":"short","qty":1,"openTime":"2026-11-27 13:38:20","closeTime":"2026-11-27 13:40:44","openPrice":12905,"closePrice":12943,"pnl":-42.2,"source":"manual","tz":"北京","note":{"tags":[],"text":"富途 CN2612.SG；毛亏 38.00 美元，开仓和平仓费用各 2.10 美元，净亏 42.20 美元。","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false}}
+  "A50-20261127133820":{"market":"A50","marketName":"A50指数期货 CN2612.SG","side":"short","qty":1,"openTime":"2026-11-27 13:38:20","closeTime":"2026-11-27 13:40:44","openPrice":12905,"closePrice":12943,"pnl":-42.2,"source":"manual","tz":"北京","note":{"tags":[],"text":"富途 CN2612.SG；毛亏 38.00 美元，开仓和平仓费用各 2.10 美元，净亏 42.20 美元。\n\n没等到收线前，就提前开仓了。","lesson":"","tp":null,"sl":null,"after":"","riskAmount":null,"execution":"","afterVerified":false}}
 };
 const S={ready:false,trades:new Map(),mk:"ALL",side:"ALL",view:"list",onlyTodo:false,openId:null,drafts:{},mode:"local",db:null,dl:null,
   fileHandle:null,fileName:"",fileSaveTimer:null,fileSaving:false,fileDirty:false,curveView:null};
@@ -451,15 +451,37 @@ function applyReleaseTrades(){
     const key="fupan-release-applied-"+id;
     try{
       if(localStorage.getItem(key)==="yes")continue;
-      const match=[...S.trades.values()].some(t=>t.market===r.market&&t.side===r.side&&
-        t.openTime===r.openTime&&t.closeTime===r.closeTime&&+t.qty===r.qty&&
-        +t.openPrice===r.openPrice&&+t.closePrice===r.closePrice);
+      const match=[...S.trades.values()].some(t=>sameReleaseFill(t,r));
       if(match||S.trades.has(id)){localStorage.setItem(key,"yes");continue}
       S.trades.set(id,r);added=true;
       if(lsSave(S.trades,false)){try{localStorage.setItem(key,"yes")}catch(e){}}
     }catch(e){}
   }
   return added;
+}
+function sameReleaseFill(t,r){
+  return t.market===r.market&&t.side===r.side&&t.openTime===r.openTime&&t.closeTime===r.closeTime&&
+    +t.qty===r.qty&&+t.openPrice===r.openPrice&&+t.closePrice===r.closePrice;
+}
+function applyNov27Review(){
+  if(SEED_REV!==RELEASE_TRADE_REV)return false;
+  const key="fupan-review-applied-A50-20261127133820-v1", line="没等到收线前，就提前开仓了。";
+  const release=RELEASE_TRADES["A50-20261127133820"];
+  try{
+    if(localStorage.getItem(key)==="yes")return false;
+    const row=[...S.trades].find(([,t])=>sameReleaseFill(t,release));
+    if(!row)return false;
+    const [id,t]=row,n=t.note||{},text=String(n.text??"");
+    if(text.includes(line)||String(n.lesson??"").includes(line)){
+      localStorage.setItem(key,"yes");return false;
+    }
+    const next=new Map(S.trades);
+    next.set(id,{...t,note:{...emptyNote(),...n,text:[text,line].filter(Boolean).join("\n\n")}});
+    if(!lsSave(next,false))return false;
+    S.trades=next;
+    try{localStorage.setItem(key,"yes")}catch(e){}
+    return true;
+  }catch(e){return false}
 }
 function lsSave(trades=S.trades, schedule=true){
   try{localStorage.setItem(LS,JSON.stringify(Object.fromEntries(trades)))}catch(e){toast("浏览器存储不可用，本次修改不会保留");return false}
@@ -662,6 +684,7 @@ async function boot(){
     bootStage("正在检查数据文件");
     await restoreDataHandle();
     applyReleaseTrades();
+    applyNov27Review();
     if(await checkMarketMigration())scheduleDataFileSave(800);
     bootStage("正在生成复盘统计");
     S.ready=true;render();
